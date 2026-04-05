@@ -413,8 +413,8 @@ async def register(request: Request, data: UserRegister, response: Response, db:
 
     cookie_settings = {
     "httponly": True,
-    "secure": IS_PRODUCTION,
-    "samesite": "lax",
+    "secure": True,
+    "samesite": "none",
     "path": "/"
 }
 
@@ -813,11 +813,12 @@ api_router.include_router(daily_router)
 app.include_router(api_router)
 
 # CORS
-origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+origins = [origin.strip() for origin in os.environ.get("CORS_ORIGINS", "").split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=origins if origins != ['*'] else ["*"],
+    allow_origins=origins,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
