@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Trophy, Users, MousePointer, Bot, TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -10,10 +11,25 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const getAuthHeaders = async () => {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session?.access_token) {
+            throw new Error('No active session');
+        }
+
+        return {
+            Authorization: `Bearer ${session.access_token}`,
+        };
+    };
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get(`${API}/profile`);
+                const headers = await getAuthHeaders();
+                const response = await axios.get(`${API}/profile`, { headers });
                 setProfile(response.data);
             } catch (error) {
                 console.error('Error fetching profile:', error);
@@ -55,7 +71,6 @@ export default function ProfilePage() {
     return (
         <div className="min-h-screen py-8 px-4" data-testid="profile-page">
             <div className="container mx-auto max-w-3xl">
-                {/* Profile Header */}
                 <div className="stats-card mb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-primary/10 border border-primary/30 flex items-center justify-center">
@@ -81,7 +96,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div className="stats-card" data-testid="profile-current-users">
                         <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
@@ -124,7 +138,6 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Additional Info */}
                 <div className="stats-card">
                     <h2 className="text-lg font-bold mb-4">Account Details</h2>
                     <div className="space-y-4">
