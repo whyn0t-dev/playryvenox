@@ -5,6 +5,7 @@ import { Users, Zap, TrendingUp, ShoppingCart, MousePointer, Bot, Loader2, Spark
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { formatApiErrorDetail } from '../contexts/AuthContext';
+import DailyBonus from '../components/DailyBonus';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -143,9 +144,22 @@ export default function GamePage() {
     const clickUpgrades = gameState?.upgrades?.filter(u => u.type === 'click') || [];
     const passiveUpgrades = gameState?.upgrades?.filter(u => u.type === 'passive') || [];
 
+    // Callback when daily bonus is claimed
+    const handleDailyClaim = (reward) => {
+        fetchGameState(false);
+    };
+
     return (
         <div className="min-h-screen py-4 sm:py-6 px-3 sm:px-4" data-testid="game-page">
             <div className="container mx-auto max-w-7xl">
+                {/* Header with Daily Bonus */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                        Level <span className="text-primary font-bold">{gameState?.level || 1}</span>
+                    </div>
+                    <DailyBonus onClaim={handleDailyClaim} />
+                </div>
+
                 {/* Stats Bar */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <div className="stats-card-highlight fade-in" data-testid="stat-current-users">

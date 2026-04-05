@@ -38,6 +38,11 @@ class PlayerStats(Base):
     last_calculated_at = Column(DateTime(timezone=True), default=utc_now)
     created_at = Column(DateTime(timezone=True), default=utc_now)
     
+    # Daily Bonus
+    last_daily_claim = Column(DateTime(timezone=True), nullable=True)
+    daily_streak = Column(Integer, default=0)
+    total_daily_claims = Column(Integer, default=0)
+    
     # Relationships
     user = relationship('User', back_populates='player_stats')
 

@@ -208,6 +208,79 @@ def calculate_upgrade_cost(base_cost: float, level: int) -> float:
     return round(base_cost * (1.15 ** level), 2)
 
 # ===========================================
+# DAILY BONUS CONSTANTS
+# ===========================================
+DAILY_BONUS_COOLDOWN_HOURS = 24
+DAILY_BONUS_BASE_REWARD = 100  # Base users reward
+DAILY_STREAK_MULTIPLIERS = {
+    1: 1.0,    # Day 1: 100 users
+    2: 1.5,    # Day 2: 150 users
+    3: 2.0,    # Day 3: 200 users
+    4: 3.0,    # Day 4: 300 users
+    5: 4.0,    # Day 5: 400 users
+    6: 5.0,    # Day 6: 500 users
+    7: 10.0,   # Day 7: 1000 users (big bonus!)
+}
+MAX_STREAK_DAYS = 7  # Streak resets after day 7
+
+def calculate_daily_bonus(level: int, streak: int) -> int:
+    """Calculate daily bonus based on player level and streak"""
+    # Base reward scales with level
+    level_bonus = DAILY_BONUS_BASE_REWARD * (1 + (level - 1) * 0.5)
+    # Apply streak multiplier
+    streak_day = min(streak + 1, MAX_STREAK_DAYS)  # +1 because streak is current, we're calculating next
+    multiplier = DAILY_STREAK_MULTIPLIERS.get(streak_day, 1.0)
+    return int(level_bonus * multiplier)
+
+def get_daily_bonus_status(stats: PlayerStats) -> dict:
+    """Get the status of daily bonus for a player"""
+    now = datetime.now(timezone.utc)
+    
+    if stats.last_daily_claim is None:
+        # Never claimed - available immediately
+        return {
+            "available": True,
+            "seconds_until_available": 0,
+            "current_streak": 0,
+            "next_reward": calculate_daily_bonus(stats.level, 0),
+            "total_claims": stats.total_daily_claims or 0
+        }
+    
+    last_claim = stats.last_daily_claim
+    if last_claim.tzinfo is None:
+        last_claim = last_claim.replace(tzinfo=timezone.utc)
+    
+    time_since_claim = now - last_claim
+    cooldown = timedelta(hours=DAILY_BONUS_COOLDOWN_HOURS)
+    streak_expiry = timedelta(hours=48)  # Streak breaks after 48 hours
+    
+    if time_since_claim >= cooldown:
+        # Bonus is available
+        # Check if streak should reset (more than 48 hours since last claim)
+        if time_since_claim >= streak_expiry:
+            current_streak = 0
+        else:
+            current_streak = stats.daily_streak or 0
+        
+        return {
+            "available": True,
+            "seconds_until_available": 0,
+            "current_streak": current_streak,
+            "next_reward": calculate_daily_bonus(stats.level, current_streak),
+            "total_claims": stats.total_daily_claims or 0
+        }
+    else:
+        # Still on cooldown
+        seconds_remaining = int((cooldown - time_since_claim).total_seconds())
+        return {
+            "available": False,
+            "seconds_until_available": seconds_remaining,
+            "current_streak": stats.daily_streak or 0,
+            "next_reward": calculate_daily_bonus(stats.level, stats.daily_streak or 0),
+            "total_claims": stats.total_daily_claims or 0
+        }
+
+# ===========================================
 # GAME LOGIC HELPERS
 # ===========================================
 async def get_or_create_player_stats(db: AsyncSession, user_id: str) -> PlayerStats:
@@ -299,6 +372,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 api_router = APIRouter(prefix="/api")
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 game_router = APIRouter(prefix="/game", tags=["game"])
+daily_router = APIRouter(prefix="/daily", tags=["daily"])
 
 # ===========================================
 # AUTH ROUTES
@@ -650,10 +724,83 @@ async def get_profile(user: User = Depends(get_current_user), db: AsyncSession =
     }
 
 # ===========================================
+# DAILY BONUS ROUTES
+# ===========================================
+@daily_router.get("/status")
+async def get_daily_status(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Get daily bonus status for the current user"""
+    stats = await get_or_create_player_stats(db, user.id)
+    status = get_daily_bonus_status(stats)
+    
+    return {
+        "available": status["available"],
+        "seconds_until_available": status["seconds_until_available"],
+        "current_streak": status["current_streak"],
+        "next_streak": min(status["current_streak"] + 1, MAX_STREAK_DAYS) if status["available"] else status["current_streak"],
+        "next_reward": status["next_reward"],
+        "total_claims": status["total_claims"],
+        "max_streak": MAX_STREAK_DAYS
+    }
+
+@daily_router.post("/claim")
+@limiter.limit("5/minute")
+async def claim_daily_bonus(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Claim daily bonus reward"""
+    stats = await get_or_create_player_stats(db, user.id)
+    
+    # Also recalculate passive income while we're here
+    stats = await recalculate_passive_income(db, stats)
+    
+    bonus_status = get_daily_bonus_status(stats)
+    
+    if not bonus_status["available"]:
+        hours_remaining = bonus_status["seconds_until_available"] // 3600
+        minutes_remaining = (bonus_status["seconds_until_available"] % 3600) // 60
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Daily bonus not available yet. Come back in {hours_remaining}h {minutes_remaining}m."
+        )
+    
+    # Calculate reward
+    reward = bonus_status["next_reward"]
+    new_streak = bonus_status["current_streak"] + 1
+    
+    # Reset streak after max days
+    if new_streak > MAX_STREAK_DAYS:
+        new_streak = 1
+    
+    now = datetime.now(timezone.utc)
+    
+    # Update player stats
+    stats.current_users += reward
+    stats.total_users_generated += reward
+    stats.last_daily_claim = now
+    stats.daily_streak = new_streak
+    stats.total_daily_claims = (stats.total_daily_claims or 0) + 1
+    
+    await db.commit()
+    await db.refresh(stats)
+    
+    # Calculate next reward preview
+    next_streak = new_streak + 1 if new_streak < MAX_STREAK_DAYS else 1
+    next_reward = calculate_daily_bonus(stats.level, new_streak)
+    
+    return {
+        "success": True,
+        "reward": reward,
+        "new_streak": new_streak,
+        "total_claims": stats.total_daily_claims,
+        "current_users": round(stats.current_users, 2),
+        "next_reward": next_reward,
+        "next_available_in": DAILY_BONUS_COOLDOWN_HOURS * 3600  # seconds
+    }
+
+# ===========================================
 # INCLUDE ROUTERS & MIDDLEWARE
 # ===========================================
 api_router.include_router(auth_router)
 api_router.include_router(game_router)
+api_router.include_router(daily_router)
 app.include_router(api_router)
 
 # CORS

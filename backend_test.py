@@ -341,6 +341,111 @@ class AIStartupClickerTester:
             return True
         return False
 
+    def test_daily_bonus_status(self):
+        """Test daily bonus status endpoint"""
+        success, response = self.run_test(
+            "Get Daily Bonus Status",
+            "GET",
+            "daily/status",
+            200
+        )
+        
+        if success and response:
+            print(f"   Available: {response.get('available')}")
+            print(f"   Current streak: {response.get('current_streak')}")
+            print(f"   Next reward: {response.get('next_reward')}")
+            print(f"   Total claims: {response.get('total_claims')}")
+            print(f"   Seconds until available: {response.get('seconds_until_available')}")
+            return True
+        return False
+
+    def test_daily_bonus_claim(self):
+        """Test claiming daily bonus"""
+        # First check status
+        success, status_response = self.run_test(
+            "Check Daily Status Before Claim",
+            "GET",
+            "daily/status",
+            200
+        )
+        
+        if not success:
+            return False
+        
+        if not status_response.get('available'):
+            print(f"   Daily bonus not available yet (cooldown: {status_response.get('seconds_until_available')} seconds)")
+            # This is expected behavior, not a failure
+            return True
+        
+        # Try to claim
+        success, response = self.run_test(
+            "Claim Daily Bonus",
+            "POST",
+            "daily/claim",
+            200
+        )
+        
+        if success and response:
+            print(f"   Reward claimed: {response.get('reward')} users")
+            print(f"   New streak: {response.get('new_streak')}")
+            print(f"   Total claims: {response.get('total_claims')}")
+            print(f"   Next available in: {response.get('next_available_in')} seconds")
+            return True
+        return False
+
+    def test_daily_bonus_cooldown(self):
+        """Test that daily bonus cannot be claimed twice within cooldown"""
+        success, response = self.run_test(
+            "Try to Claim Daily Bonus Again (Should Fail)",
+            "POST",
+            "daily/claim",
+            400  # Should fail with bad request
+        )
+        
+        if success:
+            print("   ✅ Correctly prevented double claim within cooldown")
+            return True
+        return False
+
+    def test_existing_user_daily_bonus(self):
+        """Test daily bonus with existing user who already claimed"""
+        # Login as existing test user
+        test_data = {
+            "email": "pguser@test.com",
+            "password": "testpass123"
+        }
+        
+        success, response = self.run_test(
+            "Login Existing User (pguser@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=test_data
+        )
+        
+        if not success:
+            print("   ❌ Could not login existing user")
+            return False
+        
+        # Check daily bonus status
+        success, status_response = self.run_test(
+            "Check Existing User Daily Status",
+            "GET",
+            "daily/status",
+            200
+        )
+        
+        if success and status_response:
+            print(f"   Existing user - Available: {status_response.get('available')}")
+            print(f"   Existing user - Current streak: {status_response.get('current_streak')}")
+            print(f"   Existing user - Total claims: {status_response.get('total_claims')}")
+            
+            if not status_response.get('available'):
+                print(f"   Existing user - Cooldown remaining: {status_response.get('seconds_until_available')} seconds")
+            
+            return True
+        return False
+
     def test_logout(self):
         """Test logout"""
         success, response = self.run_test(
@@ -372,6 +477,10 @@ def main():
         ("Get Game State", tester.test_game_state),
         ("Click to Gain Users", tester.test_click),
         ("Buy Upgrade", tester.test_buy_upgrade),
+        ("Daily Bonus Status (New User)", tester.test_daily_bonus_status),
+        ("Daily Bonus Claim (New User)", tester.test_daily_bonus_claim),
+        ("Daily Bonus Cooldown Test", tester.test_daily_bonus_cooldown),
+        ("Existing User Daily Bonus Test", tester.test_existing_user_daily_bonus),
         ("Get Leaderboard", tester.test_leaderboard),
         ("Get Top 10 Leaderboard", tester.test_leaderboard_top10),
         ("Get Profile", tester.test_profile),
