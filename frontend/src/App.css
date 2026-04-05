@@ -1,34 +1,152 @@
-.App-logo {
-    height: 40vmin;
+/* App-specific styles */
+.app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, hsl(0, 0%, 4%) 0%, hsl(220, 20%, 8%) 100%);
+}
+
+.app-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://static.prod-images.emergentagent.com/jobs/e976d121-276f-4d16-92bc-f283853bc37f/images/15cd48504be4548418ec2140ac124f6236384a622f6ff24e4d19609bd7a3c58f.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
     pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
+/* Main clicker button */
+.clicker-button {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, hsl(190, 100%, 40%) 0%, hsl(190, 100%, 30%) 100%);
+    border: 4px solid hsl(190, 100%, 50%);
+    box-shadow: 
+        0 0 30px rgba(0, 229, 255, 0.4),
+        0 0 60px rgba(0, 229, 255, 0.2),
+        inset 0 0 30px rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+    flex-direction: column;
 }
 
-.App-link {
-    color: #61dafb;
+.clicker-button:hover {
+    box-shadow: 
+        0 0 40px rgba(0, 229, 255, 0.6),
+        0 0 80px rgba(0, 229, 255, 0.3),
+        inset 0 0 40px rgba(255, 255, 255, 0.15);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.clicker-button:active {
+    transform: scale(0.92);
+    box-shadow: 
+        0 0 50px rgba(0, 229, 255, 0.8),
+        0 0 100px rgba(0, 229, 255, 0.4),
+        inset 0 0 50px rgba(255, 255, 255, 0.2);
+}
+
+/* Stats card */
+.stats-card {
+    background: hsl(0, 0%, 6%);
+    border: 1px solid hsl(0, 0%, 15%);
+    padding: 1.5rem;
+}
+
+/* Upgrade card */
+.upgrade-card {
+    background: hsl(0, 0%, 6%);
+    border: 1px solid hsl(0, 0%, 15%);
+    padding: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.upgrade-card:hover {
+    background: hsl(0, 0%, 8%);
+    border-color: hsl(0, 0%, 20%);
+}
+
+.upgrade-card.can-afford {
+    border-color: hsl(190, 100%, 30%);
+}
+
+.upgrade-card.can-afford:hover {
+    border-color: hsl(190, 100%, 50%);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* Navbar */
+.navbar {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid hsl(0, 0%, 15%);
+}
+
+/* Table styling */
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid hsl(0, 0%, 15%);
+}
+
+.leaderboard-table th {
+    background: hsl(0, 0%, 8%);
+    font-weight: 600;
+    color: hsl(0, 0%, 60%);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+.leaderboard-table tr:hover td {
+    background: hsl(0, 0%, 8%);
+}
+
+.leaderboard-table .rank-1 {
+    color: hsl(45, 100%, 50%);
+}
+
+.leaderboard-table .rank-2 {
+    color: hsl(0, 0%, 75%);
+}
+
+.leaderboard-table .rank-3 {
+    color: hsl(30, 80%, 50%);
+}
+
+/* Form styling */
+.auth-form {
+    background: hsl(0, 0%, 6%);
+    border: 1px solid hsl(0, 0%, 15%);
+    padding: 2rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Toast adjustments */
+[data-sonner-toaster] {
+    --normal-bg: hsl(0, 0%, 10%);
+    --normal-border: hsl(0, 0%, 20%);
+    --normal-text: hsl(0, 0%, 98%);
+    --success-bg: hsl(142, 76%, 15%);
+    --success-border: hsl(142, 76%, 36%);
+    --error-bg: hsl(0, 84%, 15%);
+    --error-border: hsl(0, 84%, 40%);
 }
