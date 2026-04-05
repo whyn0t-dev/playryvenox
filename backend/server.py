@@ -14,8 +14,6 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
 import logging
-import bcrypt
-import jwt
 import re
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
@@ -29,7 +27,6 @@ from supabase import create_client, Client
 # ===========================================
 # CONFIGURATION
 # ===========================================
-JWT_ALGORITHM = "HS256"
 ENVIRONMENT = os.environ.get("ENV", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
@@ -44,25 +41,9 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
 
-def get_jwt_secret() -> str:
-    secret = os.environ.get("JWT_SECRET")
-    if not secret or len(secret) < 32:
-        raise ValueError("JWT_SECRET must be at least 32 characters")
-    return secret
-
 # ===========================================
 # PASSWORD & SECURITY UTILITIES
 # ===========================================
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt(rounds=12)  # Increased from default 10
-    hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
-    return hashed.decode("utf-8")
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
-    except Exception:
-        return False
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
     """Validate password meets security requirements"""
@@ -89,15 +70,6 @@ def validate_username(username: str) -> tuple[bool, str]:
 # ===========================================
 # TOKEN UTILITIES
 # ===========================================
-def create_access_token(user_id: str, email: str) -> str:
-    payload = {
-        "sub": user_id,
-        "email": email,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=60),
-        "iat": datetime.now(timezone.utc),
-        "type": "access"
-    }
-    return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 # ===========================================
 # AUTH DEPENDENCY
@@ -112,10 +84,15 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             detail="Authentication required"
         )
 
-    token = auth_header[7:]
+    token = auth_header[7:].strip()
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
 
     try:
-        # Vérifie le token via Supabase
         user_response = supabase.auth.get_user(token)
         user_data = user_response.user
 
@@ -125,24 +102,56 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
                 detail="Invalid authentication token"
             )
 
-        # Cherche l'utilisateur dans ta DB locale
+        # 🔑 On cherche par ID (correct)
         result = await db.execute(
-            select(User).where(User.email == user_data.email.lower())
+            select(User).where(User.id == user_data.id)
         )
         user = result.scalar_one_or_none()
 
-        # 👉 Création auto si pas trouvé (RECOMMANDÉ)
-        if not user:
-            user = User(
-                id=user_data.id,
-                email=user_data.email.lower(),
-                username=(user_data.user_metadata or {}).get("username") or user_data.email.split("@")[0],
-                password_hash="SUPABASE_AUTH",
-                role="player"
+        # ✅ Si user existe → update email si besoin
+        if user:
+            if user.email != user_data.email.lower():
+                user.email = user_data.email.lower()
+                await db.commit()
+                await db.refresh(user)
+
+            return user
+
+        # 🚀 Création user si inexistant
+        base_username = (
+            (user_data.user_metadata or {}).get("username")
+            or user_data.email.split("@")[0]
+        )
+
+        username = re.sub(r"[^a-zA-Z0-9_]", "_", base_username)[:30] or "player"
+
+        candidate = username
+        suffix = 1
+
+        while True:
+            existing = await db.execute(
+                select(User).where(User.username == candidate)
             )
-            db.add(user)
-            await db.commit()
-            await db.refresh(user)
+            existing_user = existing.scalar_one_or_none()
+
+            if not existing_user:
+                break
+
+            suffix_str = str(suffix)
+            candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
+            suffix += 1
+
+        user = User(
+            id=user_data.id,
+            email=user_data.email.lower(),
+            username=candidate,
+            password_hash="SUPABASE_AUTH",
+            role="player"
+        )
+
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
         return user
 
@@ -413,135 +422,44 @@ daily_router = APIRouter(prefix="/daily", tags=["daily"])
 # AUTH ROUTES
 # ===========================================
 @auth_router.post("/register")
-@limiter.limit("5/minute")
-async def register(request: Request, data: UserRegister, response: Response, db: AsyncSession = Depends(get_db)):
-    email = data.email.lower()
-    
-    # Check if email exists
-    result = await db.execute(select(User).where(User.email == email))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An account with this email already exists"
-        )
-    
-    # Check if username exists
-    result = await db.execute(select(User).where(User.username == data.username))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This username is already taken"
-        )
-    
-    # Create user
-    user = User(
-        email=email,
-        username=data.username,
-        password_hash=hash_password(data.password),
-        role="player"
+@limiter.limit("10/minute")
+async def register(request: Request, data: UserRegister):
+    """
+    Registration must be done from the frontend with Supabase Auth.
+    This endpoint is kept only to avoid breaking old clients.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Use Supabase Auth signUp() from the frontend"
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    
-    # Create tokens
-    access_token = create_access_token(user.id, email)
-
-    cookie_settings = {
-    "httponly": True,
-    "secure": True,
-    "samesite": "none",
-    "path": "/",
-    "max_age": 60 * 60  # 1 hour
-}
-
-# Cookie de session : pas de max_age
-    response.set_cookie(key="access_token", value=access_token, **cookie_settings)
-    
-    # Initialize player stats
-    await get_or_create_player_stats(db, user.id)
-    
-    return {"id": user.id, "email": email, "username": data.username, "role": "player"}
 
 @auth_router.post("/login")
-@limiter.limit("10/minute")
-async def login(request: Request, data: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
-    email = data.email.lower()
-    
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
-    
-    # Generic error message to prevent user enumeration
-    if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    
-    # Create tokens
-    access_token = create_access_token(user.id, email)
-
-    cookie_settings = {
-    "httponly": True,
-    "secure": True,
-    "samesite": "none",
-    "path": "/",
-    "max_age": 60 * 60  # 1 hour
-}
-
-# Cookie de session : pas de max_age
-    response.set_cookie(key="access_token", value=access_token, **cookie_settings)
-    
-    return {"id": user.id, "email": email, "username": user.username, "role": user.role}
+@limiter.limit("20/minute")
+async def login(request: Request, data: UserLogin):
+    """
+    Login must be done from the frontend with Supabase Auth.
+    This endpoint is kept only to avoid breaking old clients.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Use Supabase Auth signInWithPassword() from the frontend"
+    )
 
 @auth_router.post("/logout")
-async def logout(response: Response):
-    response.delete_cookie(
-    key="access_token",
-    path="/",
-    secure=True,
-    samesite="none"
-    )
-    
-    return {"message": "Logged out successfully"}
+async def logout():
+    """
+    Logout must be done from the frontend with Supabase Auth.
+    """
+    return {"message": "Logout must be handled by Supabase on the frontend"}
 
 @auth_router.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
-    return {"id": user.id, "email": user.email, "username": user.username, "role": user.role}
-
-@limiter.limit("30/minute")
-async def refresh_token(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
-    token = request.cookies.get("refresh_token")
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token")
-    
-    try:
-        payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
-        if payload.get("type") != "refresh":
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
-        
-        result = await db.execute(select(User).where(User.id == payload["sub"]))
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-        
-        access_token = create_access_token(user.id, user.email)
-        
-        cookie_settings = {
-            "httponly": True,
-            "secure": IS_PRODUCTION,
-            "samesite": "lax",
-            "path": "/",
-            "max_age": 60 * 60  # 1 hour
-        }
-        response.set_cookie(key="access_token", value=access_token, **cookie_settings)
-        
-        return {"message": "Token refreshed"}
-        
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "role": user.role
+    }
 
 # ===========================================
 # GAME ROUTES

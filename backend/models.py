@@ -13,7 +13,7 @@ def utc_now():
 class User(Base):
     __tablename__ = 'users'
     
-    id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(String(36), primary_key=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
