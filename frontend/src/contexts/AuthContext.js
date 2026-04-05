@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -6,44 +6,104 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // Configure axios defaults
 axios.defaults.withCredentials = true;
 
+// Error message formatting
+const formatApiErrorDetail = (detail) => {
+    if (detail == null) return "Something went wrong. Please try again.";
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) {
+        return detail
+            .map((e) => {
+                if (e && typeof e.msg === "string") {
+                    // Clean up Pydantic validation messages
+                    let msg = e.msg;
+                    if (msg.startsWith("Value error, ")) {
+                        msg = msg.replace("Value error, ", "");
+                    }
+                    return msg;
+                }
+                return JSON.stringify(e);
+            })
+            .filter(Boolean)
+            .join(". ");
+    }
+    if (detail && typeof detail.msg === "string") return detail.msg;
+    return String(detail);
+};
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     // null = checking, false = not authenticated, object = authenticated
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const refreshIntervalRef = useRef(null);
 
     const checkAuth = useCallback(async () => {
         try {
             const response = await axios.get(`${API}/auth/me`);
             setUser(response.data);
+            return true;
         } catch (error) {
+            // Try to refresh token if access token expired
+            if (error.response?.status === 401) {
+                try {
+                    await axios.post(`${API}/auth/refresh`);
+                    const response = await axios.get(`${API}/auth/me`);
+                    setUser(response.data);
+                    return true;
+                } catch (refreshError) {
+                    setUser(false);
+                    return false;
+                }
+            }
             setUser(false);
+            return false;
         } finally {
             setLoading(false);
         }
     }, []);
 
+    // Setup token refresh interval
     useEffect(() => {
         checkAuth();
-    }, [checkAuth]);
+        
+        // Refresh token every 50 minutes (before 60 min expiry)
+        refreshIntervalRef.current = setInterval(async () => {
+            if (user) {
+                try {
+                    await axios.post(`${API}/auth/refresh`);
+                } catch (error) {
+                    // Token refresh failed, force re-auth
+                    setUser(false);
+                }
+            }
+        }, 50 * 60 * 1000);
 
-    const formatApiErrorDetail = (detail) => {
-        if (detail == null) return "Something went wrong. Please try again.";
-        if (typeof detail === "string") return detail;
-        if (Array.isArray(detail))
-            return detail.map((e) => (e && typeof e.msg === "string" ? e.msg : JSON.stringify(e))).filter(Boolean).join(" ");
-        if (detail && typeof detail.msg === "string") return detail.msg;
-        return String(detail);
-    };
+        return () => {
+            if (refreshIntervalRef.current) {
+                clearInterval(refreshIntervalRef.current);
+            }
+        };
+    }, [checkAuth, user]);
 
     const login = async (email, password) => {
         try {
             const response = await axios.post(`${API}/auth/login`, { email, password });
             setUser(response.data);
-            return { success: true };
+            return { success: true, user: response.data };
         } catch (error) {
-            const message = formatApiErrorDetail(error.response?.data?.detail) || error.message;
+            const status = error.response?.status;
+            let message = formatApiErrorDetail(error.response?.data?.detail);
+            
+            // User-friendly messages
+            if (status === 401) {
+                message = "Invalid email or password. Please try again.";
+            } else if (status === 429) {
+                message = "Too many login attempts. Please wait a minute and try again.";
+            } else if (!error.response) {
+                message = "Unable to connect to server. Please check your connection.";
+            }
+            
             return { success: false, error: message };
         }
     };
@@ -52,9 +112,27 @@ export function AuthProvider({ children }) {
         try {
             const response = await axios.post(`${API}/auth/register`, { email, password, username });
             setUser(response.data);
-            return { success: true };
+            return { success: true, user: response.data };
         } catch (error) {
-            const message = formatApiErrorDetail(error.response?.data?.detail) || error.message;
+            const status = error.response?.status;
+            let message = formatApiErrorDetail(error.response?.data?.detail);
+            
+            // User-friendly messages
+            if (status === 409) {
+                // Already handled by backend but add fallback
+                if (message.toLowerCase().includes("email")) {
+                    message = "An account with this email already exists.";
+                } else if (message.toLowerCase().includes("username")) {
+                    message = "This username is already taken.";
+                }
+            } else if (status === 429) {
+                message = "Too many registration attempts. Please wait a minute.";
+            } else if (status === 422) {
+                // Validation error - message already formatted
+            } else if (!error.response) {
+                message = "Unable to connect to server. Please check your connection.";
+            }
+            
             return { success: false, error: message };
         }
     };
@@ -75,6 +153,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        checkAuth,
         isAuthenticated: !!user && user !== false
     };
 
@@ -92,3 +171,6 @@ export function useAuth() {
     }
     return context;
 }
+
+// Export for use in other components
+export { formatApiErrorDetail };

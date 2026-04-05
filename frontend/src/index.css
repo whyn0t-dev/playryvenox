@@ -6,31 +6,28 @@
 
 @layer base {
     :root {
-        --background: 0 0% 4%;
+        --background: 220 15% 5%;
         --foreground: 0 0% 98%;
-        --card: 0 0% 6%;
+        --card: 220 15% 7%;
         --card-foreground: 0 0% 98%;
-        --popover: 0 0% 6%;
+        --popover: 220 15% 7%;
         --popover-foreground: 0 0% 98%;
-        --primary: 190 100% 50%;
-        --primary-foreground: 0 0% 4%;
-        --secondary: 0 0% 12%;
+        --primary: 185 100% 50%;
+        --primary-foreground: 220 15% 5%;
+        --secondary: 220 10% 12%;
         --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 12%;
-        --muted-foreground: 0 0% 60%;
-        --accent: 190 100% 50%;
-        --accent-foreground: 0 0% 4%;
-        --destructive: 0 100% 50%;
+        --muted: 220 10% 15%;
+        --muted-foreground: 220 10% 55%;
+        --accent: 185 100% 50%;
+        --accent-foreground: 220 15% 5%;
+        --destructive: 0 84% 60%;
         --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 15%;
-        --input: 0 0% 15%;
-        --ring: 190 100% 50%;
+        --success: 142 76% 45%;
+        --success-foreground: 0 0% 98%;
+        --border: 220 10% 18%;
+        --input: 220 10% 18%;
+        --ring: 185 100% 50%;
         --radius: 0.25rem;
-        --chart-1: 190 100% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
     }
 }
 
@@ -39,11 +36,12 @@
         @apply border-border;
     }
     body {
-        @apply bg-background text-foreground;
-        font-family: 'IBM Plex Sans', sans-serif;
+        @apply bg-background text-foreground antialiased;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
     }
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Outfit', sans-serif;
+        letter-spacing: -0.02em;
     }
     .font-mono {
         font-family: 'IBM Plex Mono', monospace;
@@ -52,32 +50,36 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: hsl(0, 0%, 8%);
+    background: hsl(220, 15%, 8%);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: hsl(0, 0%, 20%);
-    border-radius: 4px;
+    background: hsl(220, 10%, 25%);
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: hsl(0, 0%, 30%);
+    background: hsl(220, 10%, 35%);
 }
 
-/* Click animation */
+/* =============================================
+   ANIMATIONS
+   ============================================= */
+
+/* Click pulse animation */
 @keyframes click-pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(0.95); }
+    50% { transform: scale(0.92); }
     100% { transform: scale(1); }
 }
 
 .click-pulse {
-    animation: click-pulse 0.1s ease-out;
+    animation: click-pulse 0.12s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Float up animation for click feedback */
@@ -86,6 +88,10 @@
         opacity: 1;
         transform: translateY(0) scale(1);
     }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-30px) scale(1.1);
+    }
     100% {
         opacity: 0;
         transform: translateY(-60px) scale(1.2);
@@ -93,55 +99,175 @@
 }
 
 .float-up {
-    animation: float-up 0.8s ease-out forwards;
+    animation: float-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     pointer-events: none;
 }
 
-/* Glow effect */
+/* Counter increment animation */
+@keyframes counter-bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.counter-bump {
+    animation: counter-bump 0.2s ease-out;
+}
+
+/* Glow pulse */
+@keyframes glow-pulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.4));
+    }
+    50% { 
+        filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.6));
+    }
+}
+
+.glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Shine effect */
+@keyframes shine {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.shine-effect {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shine 3s linear infinite;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fade-in 0.3s ease-out;
+}
+
+/* Slide in from right */
+@keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+}
+
+/* =============================================
+   GLOW EFFECTS
+   ============================================= */
+
 .text-glow {
-    text-shadow: 0 0 15px rgba(0, 229, 255, 0.5), 0 0 30px rgba(0, 229, 255, 0.3);
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5), 0 0 20px rgba(0, 229, 255, 0.3);
 }
 
 .text-glow-strong {
-    text-shadow: 0 0 20px rgba(0, 229, 255, 0.7), 0 0 40px rgba(0, 229, 255, 0.5), 0 0 60px rgba(0, 229, 255, 0.3);
+    text-shadow: 0 0 15px rgba(0, 229, 255, 0.6), 0 0 30px rgba(0, 229, 255, 0.4), 0 0 45px rgba(0, 229, 255, 0.2);
 }
 
-/* Border glow on hover */
-.border-glow:hover {
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3), inset 0 0 10px rgba(0, 229, 255, 0.1);
+.text-glow-success {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.3);
 }
 
-/* Glass effect */
+.box-glow {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), 0 0 40px rgba(0, 229, 255, 0.1);
+}
+
+.box-glow-hover:hover {
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.3), 0 0 50px rgba(0, 229, 255, 0.15);
+}
+
+/* =============================================
+   GLASS & SURFACE EFFECTS
+   ============================================= */
+
 .glass {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(10, 15, 25, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Grid pattern overlay */
+.glass-strong {
+    background: rgba(10, 15, 25, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Grid pattern */
 .grid-pattern {
     background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 50px 50px;
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
 }
 
-/* Upgrade list item hover */
-.upgrade-item {
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+/* Noise texture overlay */
+.noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
 }
 
-.upgrade-item:hover {
-    background-color: hsl(0, 0%, 10%);
+/* =============================================
+   BUTTON STYLES
+   ============================================= */
+
+.btn-primary {
+    @apply bg-primary text-primary-foreground font-bold;
+    @apply transition-all duration-200;
+    @apply hover:brightness-110 active:scale-95;
 }
 
-/* Button active state */
 .btn-active:active {
     transform: scale(0.95);
 }
 
-/* Disable text selection on game elements */
+/* =============================================
+   UTILITY CLASSES
+   ============================================= */
+
 .no-select {
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* =============================================
+   TOAST CUSTOMIZATION
+   ============================================= */
+
+[data-sonner-toaster] {
+    --normal-bg: hsl(220, 15%, 10%);
+    --normal-border: hsl(220, 10%, 20%);
+    --normal-text: hsl(0, 0%, 98%);
+    --success-bg: hsl(142, 50%, 12%);
+    --success-border: hsl(142, 76%, 36%);
+    --success-text: hsl(142, 76%, 70%);
+    --error-bg: hsl(0, 50%, 12%);
+    --error-border: hsl(0, 84%, 50%);
+    --error-text: hsl(0, 84%, 70%);
 }

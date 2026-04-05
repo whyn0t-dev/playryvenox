@@ -1,4 +1,8 @@
-/* App-specific styles */
+/* =============================================
+   APP-SPECIFIC STYLES
+   ============================================= */
+
+/* Background */
 .app-background {
     position: fixed;
     top: 0;
@@ -6,7 +10,9 @@
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(180deg, hsl(0, 0%, 4%) 0%, hsl(220, 20%, 8%) 100%);
+    background: 
+        radial-gradient(ellipse at 50% 0%, rgba(0, 100, 130, 0.15) 0%, transparent 50%),
+        linear-gradient(180deg, hsl(220, 20%, 4%) 0%, hsl(220, 15%, 6%) 100%);
 }
 
 .app-background::before {
@@ -19,81 +25,126 @@
     background-image: url('https://static.prod-images.emergentagent.com/jobs/e976d121-276f-4d16-92bc-f283853bc37f/images/15cd48504be4548418ec2140ac124f6236384a622f6ff24e4d19609bd7a3c58f.png');
     background-size: cover;
     background-position: center;
-    opacity: 0.15;
+    opacity: 0.08;
     pointer-events: none;
 }
 
-/* Main clicker button */
+/* =============================================
+   CLICKER BUTTON
+   ============================================= */
+
 .clicker-button {
-    width: 200px;
-    height: 200px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
-    background: linear-gradient(135deg, hsl(190, 100%, 40%) 0%, hsl(190, 100%, 30%) 100%);
-    border: 4px solid hsl(190, 100%, 50%);
+    background: 
+        radial-gradient(circle at 30% 30%, hsl(185, 100%, 45%) 0%, hsl(185, 100%, 35%) 50%, hsl(185, 100%, 25%) 100%);
+    border: 3px solid hsl(185, 100%, 55%);
     box-shadow: 
-        0 0 30px rgba(0, 229, 255, 0.4),
-        0 0 60px rgba(0, 229, 255, 0.2),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
+        0 0 40px rgba(0, 229, 255, 0.4),
+        0 0 80px rgba(0, 229, 255, 0.2),
+        inset 0 0 40px rgba(255, 255, 255, 0.1),
+        inset 0 -20px 40px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.clicker-button::before {
+    content: '';
+    position: absolute;
+    top: 5%;
+    left: 15%;
+    width: 30%;
+    height: 15%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+    border-radius: 50%;
+    filter: blur(8px);
 }
 
 .clicker-button:hover {
     box-shadow: 
-        0 0 40px rgba(0, 229, 255, 0.6),
-        0 0 80px rgba(0, 229, 255, 0.3),
-        inset 0 0 40px rgba(255, 255, 255, 0.15);
+        0 0 50px rgba(0, 229, 255, 0.5),
+        0 0 100px rgba(0, 229, 255, 0.3),
+        inset 0 0 50px rgba(255, 255, 255, 0.15),
+        inset 0 -20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .clicker-button:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
     box-shadow: 
-        0 0 50px rgba(0, 229, 255, 0.8),
-        0 0 100px rgba(0, 229, 255, 0.4),
-        inset 0 0 50px rgba(255, 255, 255, 0.2);
+        0 0 60px rgba(0, 229, 255, 0.7),
+        0 0 120px rgba(0, 229, 255, 0.4),
+        inset 0 0 60px rgba(255, 255, 255, 0.2),
+        inset 0 -10px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Stats card */
+/* =============================================
+   STATS CARDS
+   ============================================= */
+
 .stats-card {
-    background: hsl(0, 0%, 6%);
-    border: 1px solid hsl(0, 0%, 15%);
-    padding: 1.5rem;
+    background: hsl(220, 15%, 7%);
+    border: 1px solid hsl(220, 10%, 15%);
+    padding: 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Upgrade card */
+.stats-card:hover {
+    border-color: hsl(220, 10%, 22%);
+}
+
+.stats-card-highlight {
+    background: linear-gradient(135deg, hsl(220, 15%, 8%) 0%, hsl(185, 30%, 8%) 100%);
+    border: 1px solid hsl(185, 50%, 25%);
+}
+
+/* =============================================
+   UPGRADE CARDS
+   ============================================= */
+
 .upgrade-card {
-    background: hsl(0, 0%, 6%);
-    border: 1px solid hsl(0, 0%, 15%);
-    padding: 1rem;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background: hsl(220, 15%, 7%);
+    border: 1px solid hsl(220, 10%, 15%);
+    padding: 1rem 1.25rem;
+    transition: all 0.2s ease;
 }
 
 .upgrade-card:hover {
-    background: hsl(0, 0%, 8%);
-    border-color: hsl(0, 0%, 20%);
+    background: hsl(220, 15%, 9%);
+    border-color: hsl(220, 10%, 22%);
 }
 
 .upgrade-card.can-afford {
-    border-color: hsl(190, 100%, 30%);
+    border-color: hsl(185, 60%, 30%);
+    background: linear-gradient(135deg, hsl(220, 15%, 7%) 0%, hsl(185, 30%, 7%) 100%);
 }
 
 .upgrade-card.can-afford:hover {
-    border-color: hsl(190, 100%, 50%);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    border-color: hsl(185, 80%, 45%);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
 }
 
-/* Navbar */
+/* =============================================
+   NAVBAR
+   ============================================= */
+
 .navbar {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid hsl(0, 0%, 15%);
+    background: rgba(10, 12, 18, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid hsl(220, 10%, 12%);
 }
 
-/* Table styling */
+/* =============================================
+   LEADERBOARD TABLE
+   ============================================= */
+
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
@@ -101,52 +152,111 @@
 
 .leaderboard-table th,
 .leaderboard-table td {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
     text-align: left;
-    border-bottom: 1px solid hsl(0, 0%, 15%);
+    border-bottom: 1px solid hsl(220, 10%, 12%);
 }
 
 .leaderboard-table th {
-    background: hsl(0, 0%, 8%);
+    background: hsl(220, 15%, 6%);
     font-weight: 600;
-    color: hsl(0, 0%, 60%);
+    color: hsl(220, 10%, 55%);
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
 }
 
-.leaderboard-table tr:hover td {
-    background: hsl(0, 0%, 8%);
+.leaderboard-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: hsl(220, 15%, 8%);
 }
 
 .leaderboard-table .rank-1 {
-    color: hsl(45, 100%, 50%);
+    color: hsl(45, 100%, 55%);
+    text-shadow: 0 0 10px rgba(255, 200, 0, 0.3);
 }
 
 .leaderboard-table .rank-2 {
-    color: hsl(0, 0%, 75%);
+    color: hsl(220, 10%, 70%);
 }
 
 .leaderboard-table .rank-3 {
-    color: hsl(30, 80%, 50%);
+    color: hsl(25, 80%, 55%);
 }
 
-/* Form styling */
+/* =============================================
+   AUTH FORMS
+   ============================================= */
+
 .auth-form {
-    background: hsl(0, 0%, 6%);
-    border: 1px solid hsl(0, 0%, 15%);
-    padding: 2rem;
-    max-width: 400px;
+    background: hsl(220, 15%, 7%);
+    border: 1px solid hsl(220, 10%, 15%);
+    padding: 2.5rem;
+    max-width: 420px;
     margin: 0 auto;
 }
 
-/* Toast adjustments */
-[data-sonner-toaster] {
-    --normal-bg: hsl(0, 0%, 10%);
-    --normal-border: hsl(0, 0%, 20%);
-    --normal-text: hsl(0, 0%, 98%);
-    --success-bg: hsl(142, 76%, 15%);
-    --success-border: hsl(142, 76%, 36%);
-    --error-bg: hsl(0, 84%, 15%);
-    --error-border: hsl(0, 84%, 40%);
+/* =============================================
+   LEVEL BADGE
+   ============================================= */
+
+.level-badge {
+    background: linear-gradient(135deg, hsl(185, 80%, 25%) 0%, hsl(185, 60%, 20%) 100%);
+    border: 1px solid hsl(185, 100%, 40%);
+    color: hsl(185, 100%, 80%);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+/* =============================================
+   PROGRESS BAR
+   ============================================= */
+
+.progress-bar {
+    height: 4px;
+    background: hsl(220, 10%, 15%);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, hsl(185, 100%, 45%) 0%, hsl(185, 100%, 55%) 100%);
+    transition: width 0.3s ease;
+}
+
+/* =============================================
+   COUNTER DISPLAY
+   ============================================= */
+
+.counter-display {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================= */
+
+@media (max-width: 768px) {
+    .clicker-button {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .auth-form {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
 }

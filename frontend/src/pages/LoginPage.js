@@ -5,47 +5,61 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         
-        if (!email || !password) {
-            toast.error('Please fill in all fields');
+        if (!email.trim()) {
+            setError('Please enter your email');
+            return;
+        }
+        
+        if (!password) {
+            setError('Please enter your password');
             return;
         }
 
         setLoading(true);
-        const result = await login(email, password);
+        const result = await login(email.trim(), password);
         setLoading(false);
 
         if (result.success) {
-            toast.success('Welcome back!');
+            toast.success(`Welcome back, ${result.user.username}!`);
             navigate('/game');
         } else {
-            toast.error(result.error);
+            setError(result.error);
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center py-12 px-4">
-            <div className="auth-form w-full" data-testid="login-form">
+            <div className="auth-form w-full fade-in" data-testid="login-form">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 mb-4">
                         <LogIn className="w-8 h-8 text-primary" />
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">Welcome Back</h1>
-                    <p className="text-muted-foreground mt-2">Sign in to continue your journey</p>
+                    <p className="text-muted-foreground mt-2 text-sm">Sign in to continue your journey</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                    <div className="mb-6 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-start gap-2 fade-in" data-testid="login-error">
+                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
                         <Label htmlFor="email" className="text-sm font-medium">
                             Email
@@ -56,11 +70,12 @@ export default function LoginPage() {
                                 id="email"
                                 type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => { setEmail(e.target.value); setError(''); }}
                                 placeholder="you@example.com"
-                                className="pl-10 h-11 bg-background border-border rounded-sm"
+                                className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-email-input"
                                 disabled={loading}
+                                autoComplete="email"
                             />
                         </div>
                     </div>
@@ -75,18 +90,19 @@ export default function LoginPage() {
                                 id="password"
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                                 placeholder="Enter your password"
-                                className="pl-10 h-11 bg-background border-border rounded-sm"
+                                className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-password-input"
                                 disabled={loading}
+                                autoComplete="current-password"
                             />
                         </div>
                     </div>
 
                     <Button
                         type="submit"
-                        className="w-full h-11 font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active"
+                        className="w-full h-11 font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active mt-6"
                         disabled={loading}
                         data-testid="login-submit-btn"
                     >

@@ -49,17 +49,86 @@ class AIStartupClickerTester:
             print(f"❌ Failed - Error: {str(e)}")
             return False, {}
 
+    def test_password_validation(self):
+        """Test password validation rules"""
+        timestamp = datetime.now().strftime('%H%M%S')
+        
+        # Test weak passwords that should fail
+        weak_passwords = [
+            ("short", "Short password (< 8 chars)"),
+            ("12345678", "No letters"),
+            ("abcdefgh", "No numbers"),
+            ("abc123", "Too short + missing requirements")
+        ]
+        
+        for weak_pass, description in weak_passwords:
+            test_data = {
+                "email": f"test{timestamp}@example.com",
+                "password": weak_pass,
+                "username": f"TestUser{timestamp}"
+            }
+            
+            success, response = self.run_test(
+                f"Password Validation - {description}",
+                "POST",
+                "auth/register",
+                422,  # Validation error
+                data=test_data
+            )
+            
+            if not success:
+                print(f"   ❌ Expected validation error for: {description}")
+                return False
+        
+        print("   ✅ All weak passwords correctly rejected")
+        return True
+
+    def test_username_validation(self):
+        """Test username validation rules"""
+        timestamp = datetime.now().strftime('%H%M%S')
+        
+        # Test invalid usernames that should fail
+        invalid_usernames = [
+            ("ab", "Too short (< 3 chars)"),
+            ("user@name", "Contains special chars"),
+            ("user name", "Contains spaces"),
+            ("user-name", "Contains hyphens"),
+            ("user.name", "Contains dots")
+        ]
+        
+        for invalid_user, description in invalid_usernames:
+            test_data = {
+                "email": f"test{timestamp}@example.com",
+                "password": "validpass123",
+                "username": invalid_user
+            }
+            
+            success, response = self.run_test(
+                f"Username Validation - {description}",
+                "POST",
+                "auth/register",
+                422,  # Validation error
+                data=test_data
+            )
+            
+            if not success:
+                print(f"   ❌ Expected validation error for: {description}")
+                return False
+        
+        print("   ✅ All invalid usernames correctly rejected")
+        return True
+
     def test_register_new_user(self):
-        """Test user registration with new user"""
+        """Test user registration with valid credentials"""
         timestamp = datetime.now().strftime('%H%M%S')
         test_data = {
             "email": f"testuser{timestamp}@example.com",
-            "password": "testpass123",
-            "username": f"TestUser{timestamp}"
+            "password": "testpass123",  # Valid: 8+ chars, has letter, has number
+            "username": f"TestUser{timestamp}"  # Valid: 3+ chars, alphanumeric
         }
         
         success, response = self.run_test(
-            "User Registration",
+            "User Registration (Valid Credentials)",
             "POST",
             "auth/register",
             200,
@@ -77,23 +146,23 @@ class AIStartupClickerTester:
             return True
         return False
 
-    def test_login_existing_user(self):
-        """Test login with existing test user"""
+    def test_login_with_invalid_credentials(self):
+        """Test login with invalid credentials should fail"""
         test_data = {
-            "email": "testuser@example.com",
-            "password": "testpass123"
+            "email": "nonexistent@example.com",
+            "password": "wrongpassword"
         }
         
         success, response = self.run_test(
-            "Login Existing User",
+            "Login with Invalid Credentials",
             "POST",
             "auth/login",
-            200,
+            401,  # Unauthorized
             data=test_data
         )
         
-        if success and response:
-            print(f"   Logged in as: {response.get('username')}")
+        if success:
+            print("   ✅ Invalid credentials correctly rejected")
             return True
         return False
 
@@ -294,8 +363,11 @@ def main():
     
     # Test sequence
     tests = [
-        ("Register New User", tester.test_register_new_user),
+        ("Password Validation Tests", tester.test_password_validation),
+        ("Username Validation Tests", tester.test_username_validation),
+        ("Register New User (Valid)", tester.test_register_new_user),
         ("Login New User", tester.test_login_new_user),
+        ("Login with Invalid Credentials", tester.test_login_with_invalid_credentials),
         ("Get Current User Info", tester.test_get_me),
         ("Get Game State", tester.test_game_state),
         ("Click to Gain Users", tester.test_click),
@@ -304,7 +376,6 @@ def main():
         ("Get Top 10 Leaderboard", tester.test_leaderboard_top10),
         ("Get Profile", tester.test_profile),
         ("Logout", tester.test_logout),
-        ("Login Existing User", tester.test_login_existing_user),
     ]
     
     for test_name, test_func in tests:
