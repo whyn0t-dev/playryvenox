@@ -37,7 +37,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-    raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required")
+    raise ValueError("Missing Supabase config")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
@@ -105,8 +105,6 @@ def create_access_token(user_id: str, email: str) -> str:
 
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     auth_header = request.headers.get("Authorization", "")
-    print("AUTH HEADER PRESENT:", bool(auth_header))
-    print("AUTH HEADER PREFIX:", auth_header[:30] if auth_header else "NONE")
 
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -115,33 +113,36 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         )
 
     token = auth_header[7:]
-    print("TOKEN PRESENT:", bool(token))
-    print("TOKEN PREFIX:", token[:20] if token else "EMPTY")
 
     try:
-        claims = supabase.auth.get_claims(token)
-        print("CLAIMS OK:", claims)
-
+        # Vérifie le token via Supabase
         user_response = supabase.auth.get_user(token)
-        print("USER RESPONSE OK:", user_response)
-
         user_data = user_response.user
+
         if not user_data or not user_data.email:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token"
             )
 
+        # Cherche l'utilisateur dans ta DB locale
         result = await db.execute(
             select(User).where(User.email == user_data.email.lower())
         )
         user = result.scalar_one_or_none()
 
+        # 👉 Création auto si pas trouvé (RECOMMANDÉ)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found in local database"
+            user = User(
+                id=user_data.id,
+                email=user_data.email.lower(),
+                username=(user_data.user_metadata or {}).get("username") or user_data.email.split("@")[0],
+                password_hash="SUPABASE_AUTH",
+                role="player"
             )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
 
         return user
 
