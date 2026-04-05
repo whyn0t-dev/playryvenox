@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Zap, Trophy, User, LogOut, Menu, X } from 'lucide-react';
@@ -7,11 +7,13 @@ import { useState } from 'react';
 export default function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
         await logout();
         setMobileMenuOpen(false);
+        navigate('/');
     };
 
     const isActive = (path) => location.pathname === path;
