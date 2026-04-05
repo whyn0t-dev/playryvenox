@@ -17,7 +17,6 @@ export default function RegisterPage() {
     const { register } = useAuth();
     const navigate = useNavigate();
 
-    // Password strength indicators
     const passwordChecks = {
         length: password.length >= 8,
         letter: /[a-zA-Z]/.test(password),
@@ -29,7 +28,6 @@ export default function RegisterPage() {
         e.preventDefault();
         setError('');
 
-        // Client-side validation
         if (!username.trim()) {
             setError('Please enter a username');
             return;
@@ -75,8 +73,15 @@ export default function RegisterPage() {
         setLoading(false);
 
         if (result.success) {
-            toast.success('Account created! Welcome aboard!');
-            navigate('/game');
+            if (result.user) {
+                toast.success(`Account created! Welcome, ${result.user.username}!`);
+                navigate('/game');
+            } else {
+                toast.success(
+                    result.message || 'Account created successfully. Please check your email to confirm your account.'
+                );
+                navigate('/login');
+            }
         } else {
             setError(result.error);
         }
@@ -163,8 +168,7 @@ export default function RegisterPage() {
                                 autoComplete="new-password"
                             />
                         </div>
-                        
-                        {/* Password strength indicator */}
+
                         {password && (
                             <div className="space-y-2 mt-2 fade-in">
                                 <div className="flex gap-1">

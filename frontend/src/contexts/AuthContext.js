@@ -1,12 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import { supabase } from '../lib/supabase';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Configure axios defaults
-axios.defaults.withCredentials = true;
-
-// Error message formatting
 const formatApiErrorDetail = (detail) => {
     if (detail == null) return "Something went wrong. Please try again.";
     if (typeof detail === "string") return detail;
@@ -36,10 +30,40 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const refreshIntervalRef = useRef(null);
 
+    const getProfile = useCallback(async (authUser) => {
+        if (!authUser) return false;
+
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, email, username, role, created_at')
+            .eq('id', authUser.id)
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        return data;
+    }, []);
+
     const checkAuth = useCallback(async () => {
         try {
-            const response = await axios.get(`${API}/auth/me`);
-            setUser(response.data);
+            const {
+                data: { session },
+                error: sessionError
+            } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                throw sessionError;
+            }
+
+            if (!session?.user) {
+                setUser(false);
+                return false;
+            }
+
+            const profile = await getProfile(session.user);
+            setUser(profile);
             return true;
         } catch (error) {
             setUser(false);
@@ -47,43 +71,83 @@ export function AuthProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [getProfile]);
 
     useEffect(() => {
         checkAuth();
 
+        const {
+            data: { subscription }
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (!session?.user) {
+                setUser(false);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const profile = await getProfile(session.user);
+                setUser(profile);
+            } catch (error) {
+                setUser(false);
+            } finally {
+                setLoading(false);
+            }
+        });
+
         refreshIntervalRef.current = setInterval(async () => {
-            if (user) {
-                try {
-                    await axios.get(`${API}/auth/me`);
-                } catch (error) {
+            try {
+                const {
+                    data: { session }
+                } = await supabase.auth.getSession();
+
+                if (!session?.user) {
                     setUser(false);
+                    return;
                 }
+
+                const profile = await getProfile(session.user);
+                setUser(profile);
+            } catch (error) {
+                setUser(false);
             }
         }, 50 * 60 * 1000);
 
         return () => {
+            subscription?.unsubscribe();
+
             if (refreshIntervalRef.current) {
                 clearInterval(refreshIntervalRef.current);
             }
         };
-    }, [checkAuth, user]);
+    }, [checkAuth, getProfile]);
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${API}/auth/login`, { email, password });
-            setUser(response.data);
-            return { success: true, user: response.data };
-        } catch (error) {
-            const status = error.response?.status;
-            let message = formatApiErrorDetail(error.response?.data?.detail);
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
 
-            if (status === 401) {
+            if (error) {
+                throw error;
+            }
+
+            const profile = await getProfile(data.user);
+            setUser(profile);
+
+            return { success: true, user: profile };
+        } catch (error) {
+            let message = formatApiErrorDetail(error.message || error);
+
+            if (
+                error.message?.toLowerCase().includes('invalid login credentials')
+            ) {
                 message = "Invalid email or password. Please try again.";
-            } else if (status === 429) {
-                message = "Too many login attempts. Please wait a minute and try again.";
-            } else if (!error.response) {
-                message = "Unable to connect to server. Please check your connection.";
+            } else if (
+                error.message?.toLowerCase().includes('email not confirmed')
+            ) {
+                message = "Please confirm your email address before logging in.";
             }
 
             return { success: false, error: message };
@@ -92,24 +156,49 @@ export function AuthProvider({ children }) {
 
     const register = async (email, password, username) => {
         try {
-            const response = await axios.post(`${API}/auth/register`, { email, password, username });
-            setUser(response.data);
-            return { success: true, user: response.data };
-        } catch (error) {
-            const status = error.response?.status;
-            let message = formatApiErrorDetail(error.response?.data?.detail);
-
-            if (status === 409) {
-                if (message.toLowerCase().includes("email")) {
-                    message = "An account with this email already exists.";
-                } else if (message.toLowerCase().includes("username")) {
-                    message = "This username is already taken.";
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        username
+                    }
                 }
-            } else if (status === 429) {
-                message = "Too many registration attempts. Please wait a minute.";
-            } else if (status === 422) {
-            } else if (!error.response) {
-                message = "Unable to connect to server. Please check your connection.";
+            });
+
+            if (error) {
+                throw error;
+            }
+
+            // Si confirmation email activée, il se peut qu'il n'y ait pas encore de session active immédiate
+            if (!data.user) {
+                return {
+                    success: true,
+                    user: null,
+                    message: "Account created successfully. Please check your email to confirm your account."
+                };
+            }
+
+            // On tente de récupérer le profil si déjà créé par le trigger
+            try {
+                const profile = await getProfile(data.user);
+                setUser(profile);
+                return { success: true, user: profile };
+            } catch (profileError) {
+                // Le trigger peut avoir un léger délai
+                return {
+                    success: true,
+                    user: null,
+                    message: "Account created successfully."
+                };
+            }
+        } catch (error) {
+            let message = formatApiErrorDetail(error.message || error);
+
+            if (message.toLowerCase().includes("already registered")) {
+                message = "An account with this email already exists.";
+            } else if (message.toLowerCase().includes("username")) {
+                message = "This username is already taken.";
             }
 
             return { success: false, error: message };
@@ -118,7 +207,7 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await axios.post(`${API}/auth/logout`);
+            await supabase.auth.signOut();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {

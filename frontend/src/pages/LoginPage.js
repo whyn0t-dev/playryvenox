@@ -18,12 +18,12 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        
+
         if (!email.trim()) {
             setError('Please enter your email');
             return;
         }
-        
+
         if (!password) {
             setError('Please enter your password');
             return;
@@ -34,7 +34,8 @@ export default function LoginPage() {
         setLoading(false);
 
         if (result.success) {
-            toast.success(`Welcome back, ${result.user.username}!`);
+            const username = result.user?.username || 'player';
+            toast.success(`Welcome back, ${username}!`);
             navigate('/game');
         } else {
             setError(result.error);
@@ -70,7 +71,10 @@ export default function LoginPage() {
                                 id="email"
                                 type="email"
                                 value={email}
-                                onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    setError('');
+                                }}
                                 placeholder="you@example.com"
                                 className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-email-input"
@@ -90,7 +94,10 @@ export default function LoginPage() {
                                 id="password"
                                 type="password"
                                 value={password}
-                                onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    setError('');
+                                }}
                                 placeholder="Enter your password"
                                 className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-password-input"
