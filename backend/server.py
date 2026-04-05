@@ -142,10 +142,10 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             suffix += 1
 
             user = User(
-            id=user_data["id"],
-            email=user_data["email"].lower(),
-            username=candidate,
-            role="player"
+                id=user_data.id,
+                email=user_data.email.lower(),
+                username=candidate,
+                role="player"
             )
 
         db.add(user)
