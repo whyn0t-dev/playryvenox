@@ -1,10 +1,12 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Configure axios defaults
 axios.defaults.withCredentials = true;
 
+// Error message formatting
 const formatApiErrorDetail = (detail) => {
     if (detail == null) return "Something went wrong. Please try again.";
     if (typeof detail === "string") return detail;
@@ -30,8 +32,42 @@ const formatApiErrorDetail = (detail) => {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const refreshIntervalRef = useRef(null);
+
+    const checkAuth = useCallback(async () => {
+        try {
+            const response = await axios.get(`${API}/auth/me`);
+            setUser(response.data);
+            return true;
+        } catch (error) {
+            setUser(false);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        checkAuth();
+
+        refreshIntervalRef.current = setInterval(async () => {
+            if (user) {
+                try {
+                    await axios.get(`${API}/auth/me`);
+                } catch (error) {
+                    setUser(false);
+                }
+            }
+        }, 50 * 60 * 1000);
+
+        return () => {
+            if (refreshIntervalRef.current) {
+                clearInterval(refreshIntervalRef.current);
+            }
+        };
+    }, [checkAuth, user]);
 
     const login = async (email, password) => {
         try {
@@ -71,6 +107,7 @@ export function AuthProvider({ children }) {
                 }
             } else if (status === 429) {
                 message = "Too many registration attempts. Please wait a minute.";
+            } else if (status === 422) {
             } else if (!error.response) {
                 message = "Unable to connect to server. Please check your connection.";
             }
@@ -95,6 +132,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        checkAuth,
         isAuthenticated: !!user && user !== false
     };
 
