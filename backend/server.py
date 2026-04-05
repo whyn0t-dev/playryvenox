@@ -28,7 +28,7 @@ from models import User, PlayerStats, Upgrade, PlayerUpgrade
 # CONFIGURATION
 # ===========================================
 JWT_ALGORITHM = "HS256"
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
+ENVIRONMENT = os.environ.get("ENV", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
 # Rate limiting
@@ -39,10 +39,6 @@ def get_jwt_secret() -> str:
     if not secret or len(secret) < 32:
         raise ValueError("JWT_SECRET must be at least 32 characters")
     return secret
-
-@app.get("/api/health")
-async def health_check():
-    return {"status": "ok"}
 
 # ===========================================
 # PASSWORD & SECURITY UTILITIES
@@ -803,6 +799,20 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
 # ===========================================
 # INCLUDE ROUTERS & MIDDLEWARE
 # ===========================================
+# Health check
+@api_router.get("/api/health")
+async def health_check():
+    return {"status": "healthy", "environment": ENVIRONMENT}
+
+# Root endpoint
+@api_router.get("/")
+async def root():
+    return {
+        "message": "AI Startup Clicker API",
+        "version": "1.0.0",
+        "database": "PostgreSQL/Supabase"
+    }
+
 api_router.include_router(auth_router)
 api_router.include_router(game_router)
 api_router.include_router(daily_router)
@@ -847,16 +857,4 @@ async def startup():
     
     logger.info(f"Database initialized (Environment: {ENVIRONMENT})")
 
-# Root endpoint
-@api_router.get("/")
-async def root():
-    return {
-        "message": "AI Startup Clicker API",
-        "version": "1.0.0",
-        "database": "PostgreSQL/Supabase"
-    }
 
-# Health check
-@api_router.get("/health")
-async def health_check():
-    return {"status": "healthy", "environment": ENVIRONMENT}
