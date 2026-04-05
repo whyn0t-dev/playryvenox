@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { formatApiErrorDetail } from '../contexts/AuthContext';
 import DailyBonus from '../components/DailyBonus';
+import { supabase } from '../lib/supabase';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -20,10 +21,26 @@ export default function GamePage() {
     const clickerRef = useRef(null);
     const lastClickTime = useRef(0);
 
+    const getAuthHeaders = async () => {
+        const {
+            data: { session }
+        } = await supabase.auth.getSession();
+
+        if (!session?.access_token) {
+            throw new Error('No active session');
+        }
+
+        return {
+            Authorization: `Bearer ${session.access_token}`
+        };
+    };
+
     const fetchGameState = useCallback(async (showLoading = false) => {
         if (showLoading) setLoading(true);
+
         try {
-            const response = await axios.get(`${API}/game/state`);
+            const headers = await getAuthHeaders();
+            const response = await axios.get(`${API}/game/state`, { headers });
             setGameState(response.data);
         } catch (error) {
             if (error.response?.status !== 401) {
@@ -36,7 +53,7 @@ export default function GamePage() {
 
     useEffect(() => {
         fetchGameState(true);
-        
+
         // Refresh game state periodically for passive income
         const interval = setInterval(() => fetchGameState(false), 5000);
         return () => clearInterval(interval);
@@ -50,7 +67,7 @@ export default function GamePage() {
 
         if (clicking) return;
         setClicking(true);
-        
+
         // Add visual feedback at click position
         const rect = clickerRef.current?.getBoundingClientRect();
         if (rect) {
@@ -58,9 +75,9 @@ export default function GamePage() {
             const y = e.clientY - rect.top;
             const id = feedbackIdRef.current++;
             const gained = gameState?.click_power || 1;
-            
+
             setClickFeedback(prev => [...prev.slice(-10), { id, x, y, value: gained }]);
-            
+
             // Remove feedback after animation
             setTimeout(() => {
                 setClickFeedback(prev => prev.filter(f => f.id !== id));
@@ -72,12 +89,14 @@ export default function GamePage() {
         setTimeout(() => setCounterAnimating(false), 200);
 
         try {
-            const response = await axios.post(`${API}/game/click`);
+            const headers = await getAuthHeaders();
+            const response = await axios.post(`${API}/game/click`, {}, { headers });
+
             setGameState(prev => ({
                 ...prev,
                 current_users: response.data.current_users,
                 total_users_generated: response.data.total_users_generated,
-                upgrades: prev.upgrades.map(u => ({
+                upgrades: (prev?.upgrades || []).map(u => ({
                     ...u,
                     can_afford: response.data.current_users >= u.cost
                 }))
@@ -93,12 +112,17 @@ export default function GamePage() {
 
     const handleBuyUpgrade = async (upgradeId, upgradeName) => {
         if (buyingUpgrade) return;
-        
+
         setBuyingUpgrade(upgradeId);
-        
+
         try {
-            const response = await axios.post(`${API}/game/buy-upgrade`, { upgrade_id: upgradeId });
-            
+            const headers = await getAuthHeaders();
+            const response = await axios.post(
+                `${API}/game/buy-upgrade`,
+                { upgrade_id: upgradeId },
+                { headers }
+            );
+
             if (response.data.success) {
                 toast.success(
                     <div className="flex items-center gap-2">
@@ -106,7 +130,6 @@ export default function GamePage() {
                         <span><strong>{response.data.upgrade_name}</strong> upgraded to level {response.data.new_level}!</span>
                     </div>
                 );
-                // Refresh full game state to get updated costs
                 await fetchGameState(false);
             }
         } catch (error) {
@@ -171,7 +194,7 @@ export default function GamePage() {
                             {formatNumber(gameState?.current_users || 0)}
                         </div>
                     </div>
-                    
+
                     <div className="stats-card fade-in stagger-1" data-testid="stat-total-users">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -181,7 +204,7 @@ export default function GamePage() {
                             {formatNumber(gameState?.total_users_generated || 0)}
                         </div>
                     </div>
-                    
+
                     <div className="stats-card fade-in stagger-2" data-testid="stat-click-power">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <MousePointer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -191,7 +214,7 @@ export default function GamePage() {
                             +{gameState?.click_power || 1}
                         </div>
                     </div>
-                    
+
                     <div className="stats-card fade-in stagger-3" data-testid="stat-passive-income">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -210,7 +233,7 @@ export default function GamePage() {
                             <div className="inline-block level-badge mb-3">
                                 LEVEL {gameState?.level || 1}
                             </div>
-                            <div 
+                            <div
                                 className={`text-5xl sm:text-6xl lg:text-7xl counter-display text-glow-strong ${counterAnimating ? 'counter-bump' : ''}`}
                                 data-testid="main-user-counter"
                             >
@@ -230,7 +253,7 @@ export default function GamePage() {
                                 <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">LAUNCH</span>
                                 <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">CAMPAIGN</span>
                             </button>
-                            
+
                             {/* Click Feedback */}
                             {clickFeedback.map(fb => (
                                 <div
@@ -246,7 +269,7 @@ export default function GamePage() {
                         <p className="text-muted-foreground text-xs sm:text-sm mt-4 sm:mt-6">
                             Click to acquire users
                         </p>
-                        
+
                         {gameState?.passive_income > 0 && (
                             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                                 <Bot className="w-3 h-3" />
@@ -319,7 +342,7 @@ export default function GamePage() {
 
 function UpgradeItem({ upgrade, onBuy, buying, formatCost, index }) {
     return (
-        <div 
+        <div
             className={`upgrade-card flex items-center justify-between gap-3 ${upgrade.can_afford ? 'can-afford' : ''}`}
             data-testid={`upgrade-${upgrade.id}`}
             style={{ animationDelay: `${index * 50}ms` }}
@@ -338,7 +361,7 @@ function UpgradeItem({ upgrade, onBuy, buying, formatCost, index }) {
                     {upgrade.description}
                 </div>
             </div>
-            
+
             <div className="flex items-center gap-2 sm:gap-3">
                 <div className="text-right">
                     <div className={`font-mono text-xs sm:text-sm ${upgrade.can_afford ? 'text-foreground' : 'text-muted-foreground'}`}>

@@ -10,6 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import GamePage from "./pages/GamePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import AuthConfirmPage from "./pages/AuthPageConfirm";
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/auth/confirm" element={<AuthConfirmPage />} />
+
               <Route
                 path="/game"
                 element={

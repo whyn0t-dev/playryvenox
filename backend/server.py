@@ -24,12 +24,22 @@ from typing import List, Optional
 from database import get_db, engine, Base, AsyncSessionLocal
 from models import User, PlayerStats, Upgrade, PlayerUpgrade
 
+from supabase import create_client, Client
+
 # ===========================================
 # CONFIGURATION
 # ===========================================
 JWT_ALGORITHM = "HS256"
 ENVIRONMENT = os.environ.get("ENV", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -88,54 +98,46 @@ def create_access_token(user_id: str, email: str) -> str:
         "type": "access"
     }
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
-    payload = {
-        "sub": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(days=7),
-        "iat": datetime.now(timezone.utc),
-        "type": "refresh"
-    }
-    return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 # ===========================================
 # AUTH DEPENDENCY
 # ===========================================
 
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
-    token = request.cookies.get("access_token")
-    if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
-    
-    if not token:
+    auth_header = request.headers.get("Authorization", "")
+
+    if not auth_header.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required"
         )
-    
+
+    token = auth_header[7:]
+
     try:
-        payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
-        if payload.get("type") != "access":
+        supabase_user = supabase.auth.get_user(token)
+        user_data = supabase_user.user
+
+        if not user_data or not user_data.email:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type"
+                detail="Invalid authentication token"
             )
-        
-        result = await db.execute(select(User).where(User.id == payload["sub"]))
+
+        result = await db.execute(select(User).where(User.email == user_data.email.lower()))
         user = result.scalar_one_or_none()
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found"
+                detail="User not found in local database"
             )
+
         return user
-        
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session expired. Please login again."
-        )
-    except jwt.InvalidTokenError:
+
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token"
@@ -415,7 +417,8 @@ async def register(request: Request, data: UserRegister, response: Response, db:
     "httponly": True,
     "secure": True,
     "samesite": "none",
-    "path": "/"
+    "path": "/",
+    "max_age": 60 * 60  # 1 hour
 }
 
 # Cookie de session : pas de max_age
@@ -448,7 +451,8 @@ async def login(request: Request, data: UserLogin, response: Response, db: Async
     "httponly": True,
     "secure": True,
     "samesite": "none",
-    "path": "/"
+    "path": "/",
+    "max_age": 60 * 60  # 1 hour
 }
 
 # Cookie de session : pas de max_age
@@ -458,7 +462,13 @@ async def login(request: Request, data: UserLogin, response: Response, db: Async
 
 @auth_router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token", path="/", samesite="none", secure=True)
+    response.delete_cookie(
+    key="access_token",
+    path="/",
+    secure=True,
+    samesite="none"
+    )
+    
     return {"message": "Logged out successfully"}
 
 @auth_router.get("/me")
@@ -487,7 +497,8 @@ async def refresh_token(request: Request, response: Response, db: AsyncSession =
             "httponly": True,
             "secure": IS_PRODUCTION,
             "samesite": "lax",
-            "path": "/"
+            "path": "/",
+            "max_age": 60 * 60  # 1 hour
         }
         response.set_cookie(key="access_token", value=access_token, **cookie_settings)
         
@@ -813,13 +824,17 @@ api_router.include_router(daily_router)
 app.include_router(api_router)
 
 # CORS
-origins = [origin.strip() for origin in os.environ.get("CORS_ORIGINS", "").split(",") if origin.strip()]
+origins = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=origins,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 const formatApiErrorDetail = (detail) => {
@@ -28,7 +28,6 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const refreshIntervalRef = useRef(null);
 
     const getProfile = useCallback(async (authUser) => {
         if (!authUser) return false;
@@ -39,23 +38,18 @@ export function AuthProvider({ children }) {
             .eq('id', authUser.id)
             .single();
 
-        if (error) {
-            throw error;
-        }
-
+        if (error) throw error;
         return data;
     }, []);
 
-    const checkAuth = useCallback(async () => {
+    const loadCurrentUser = useCallback(async () => {
         try {
             const {
                 data: { session },
                 error: sessionError
             } = await supabase.auth.getSession();
 
-            if (sessionError) {
-                throw sessionError;
-            }
+            if (sessionError) throw sessionError;
 
             if (!session?.user) {
                 setUser(false);
@@ -74,53 +68,34 @@ export function AuthProvider({ children }) {
     }, [getProfile]);
 
     useEffect(() => {
-        checkAuth();
+        loadCurrentUser();
 
         const {
             data: { subscription }
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (!session?.user) {
-                setUser(false);
-                setLoading(false);
-                return;
-            }
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            // Éviter les appels async Supabase directement dans ce callback
+            setTimeout(async () => {
+                try {
+                    if (!session?.user) {
+                        setUser(false);
+                        setLoading(false);
+                        return;
+                    }
 
-            try {
-                const profile = await getProfile(session.user);
-                setUser(profile);
-            } catch (error) {
-                setUser(false);
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        refreshIntervalRef.current = setInterval(async () => {
-            try {
-                const {
-                    data: { session }
-                } = await supabase.auth.getSession();
-
-                if (!session?.user) {
+                    const profile = await getProfile(session.user);
+                    setUser(profile);
+                } catch (error) {
                     setUser(false);
-                    return;
+                } finally {
+                    setLoading(false);
                 }
-
-                const profile = await getProfile(session.user);
-                setUser(profile);
-            } catch (error) {
-                setUser(false);
-            }
-        }, 50 * 60 * 1000);
+            }, 0);
+        });
 
         return () => {
             subscription?.unsubscribe();
-
-            if (refreshIntervalRef.current) {
-                clearInterval(refreshIntervalRef.current);
-            }
         };
-    }, [checkAuth, getProfile]);
+    }, [loadCurrentUser, getProfile]);
 
     const login = async (email, password) => {
         try {
@@ -129,8 +104,13 @@ export function AuthProvider({ children }) {
                 password
             });
 
-            if (error) {
-                throw error;
+            if (error) throw error;
+
+            if (!data?.user) {
+                return {
+                    success: false,
+                    error: "Unable to retrieve user after login."
+                };
             }
 
             const profile = await getProfile(data.user);
@@ -140,13 +120,9 @@ export function AuthProvider({ children }) {
         } catch (error) {
             let message = formatApiErrorDetail(error.message || error);
 
-            if (
-                error.message?.toLowerCase().includes('invalid login credentials')
-            ) {
+            if (error.message?.toLowerCase().includes('invalid login credentials')) {
                 message = "Invalid email or password. Please try again.";
-            } else if (
-                error.message?.toLowerCase().includes('email not confirmed')
-            ) {
+            } else if (error.message?.toLowerCase().includes('email not confirmed')) {
                 message = "Please confirm your email address before logging in.";
             }
 
@@ -163,15 +139,15 @@ export function AuthProvider({ children }) {
                     data: {
                         username
                     }
+                    // optionnel :
+                    // emailRedirectTo: `${window.location.origin}/login`
                 }
             });
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
-            // Si confirmation email activée, il se peut qu'il n'y ait pas encore de session active immédiate
-            if (!data.user) {
+            // Avec confirmation email activée, on privilégie ce scénario
+            if (!data?.session) {
                 return {
                     success: true,
                     user: null,
@@ -179,13 +155,12 @@ export function AuthProvider({ children }) {
                 };
             }
 
-            // On tente de récupérer le profil si déjà créé par le trigger
+            // Si session immédiate disponible
             try {
                 const profile = await getProfile(data.user);
                 setUser(profile);
                 return { success: true, user: profile };
-            } catch (profileError) {
-                // Le trigger peut avoir un léger délai
+            } catch {
                 return {
                     success: true,
                     user: null,
@@ -197,8 +172,6 @@ export function AuthProvider({ children }) {
 
             if (message.toLowerCase().includes("already registered")) {
                 message = "An account with this email already exists.";
-            } else if (message.toLowerCase().includes("username")) {
-                message = "This username is already taken.";
             }
 
             return { success: false, error: message };
@@ -221,7 +194,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        checkAuth,
+        checkAuth: loadCurrentUser,
         isAuthenticated: !!user && user !== false
     };
 
