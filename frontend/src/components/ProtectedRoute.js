@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children }) {
         );
     }
 
-    if (!user || user === false) {
+    if (!user) {
         return <Navigate to="/login" replace />;
     }
 
