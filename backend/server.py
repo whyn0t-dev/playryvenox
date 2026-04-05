@@ -40,6 +40,10 @@ def get_jwt_secret() -> str:
         raise ValueError("JWT_SECRET must be at least 32 characters")
     return secret
 
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok"}
+
 # ===========================================
 # PASSWORD & SECURITY UTILITIES
 # ===========================================
@@ -101,6 +105,7 @@ def create_refresh_token(user_id: str) -> str:
 # ===========================================
 # AUTH DEPENDENCY
 # ===========================================
+
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     token = request.cookies.get("access_token")
     if not token:
