@@ -19,6 +19,9 @@ class User(Base):
     role = Column(String(50), default='player')
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
+    player_stats = relationship('PlayerStats', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    player_upgrades = relationship('PlayerUpgrade', back_populates='user', cascade='all, delete-orphan')
+
 
 class PlayerStats(Base):
     __tablename__ = 'player_stats'
