@@ -23,15 +23,18 @@ export default function GamePage() {
 
     const getAuthHeaders = async () => {
         const {
-            data: { session }
+            data: { session },
         } = await supabase.auth.getSession();
 
+        console.log("SESSION?", session);
+        console.log("ACCESS TOKEN PREFIX:", session?.access_token?.slice(0, 20));
+
         if (!session?.access_token) {
-            throw new Error('No active session');
+            throw new Error("No active session");
         }
 
         return {
-            Authorization: `Bearer ${session.access_token}`
+            Authorization: `Bearer ${session.access_token}`,
         };
     };
 

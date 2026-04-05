@@ -105,6 +105,8 @@ def create_access_token(user_id: str, email: str) -> str:
 
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     auth_header = request.headers.get("Authorization", "")
+    print("AUTH HEADER PRESENT:", bool(auth_header))
+    print("AUTH HEADER PREFIX:", auth_header[:30] if auth_header else "NONE")
 
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -113,18 +115,26 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         )
 
     token = auth_header[7:]
+    print("TOKEN PRESENT:", bool(token))
+    print("TOKEN PREFIX:", token[:20] if token else "EMPTY")
 
     try:
-        supabase_user = supabase.auth.get_user(token)
-        user_data = supabase_user.user
+        claims = supabase.auth.get_claims(token)
+        print("CLAIMS OK:", claims)
 
+        user_response = supabase.auth.get_user(token)
+        print("USER RESPONSE OK:", user_response)
+
+        user_data = user_response.user
         if not user_data or not user_data.email:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token"
             )
 
-        result = await db.execute(select(User).where(User.email == user_data.email.lower()))
+        result = await db.execute(
+            select(User).where(User.email == user_data.email.lower())
+        )
         user = result.scalar_one_or_none()
 
         if not user:
@@ -137,7 +147,8 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
 
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        print("AUTH ERROR:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token"
