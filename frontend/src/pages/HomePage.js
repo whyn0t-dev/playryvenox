@@ -16,9 +16,20 @@ export default function HomePage() {
         const fetchTopPlayers = async () => {
             try {
                 const response = await axios.get(`${API}/leaderboard/top10`);
-                setTopPlayers(response.data);
+                // Ensure we always have an array
+                const data = response.data;
+                if (Array.isArray(data)) {
+                    setTopPlayers(data);
+                } else if (data && Array.isArray(data.players)) {
+                    // Handle case where API returns {players: [...]}
+                    setTopPlayers(data.players);
+                } else {
+                    console.error('Unexpected leaderboard response format:', data);
+                    setTopPlayers([]);
+                }
             } catch (error) {
                 console.error('Error fetching leaderboard:', error);
+                setTopPlayers([]);
             } finally {
                 setLoading(false);
             }
@@ -177,7 +188,7 @@ export default function HomePage() {
                                             Loading...
                                         </td>
                                     </tr>
-                                ) : topPlayers.length === 0 ? (
+                                ) : !Array.isArray(topPlayers) || topPlayers.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="text-center py-8 text-muted-foreground">
                                             No players yet. Be the first!

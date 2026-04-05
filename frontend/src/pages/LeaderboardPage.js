@@ -17,11 +17,29 @@ export default function LeaderboardPage() {
             setLoading(true);
             try {
                 const response = await axios.get(`${API}/leaderboard?page=${page}&limit=20`);
-                setPlayers(response.data.players);
-                setTotalPages(response.data.pages);
-                setTotal(response.data.total);
+                const data = response.data;
+                
+                // Safely extract players array
+                if (data && Array.isArray(data.players)) {
+                    setPlayers(data.players);
+                    setTotalPages(data.pages || 1);
+                    setTotal(data.total || 0);
+                } else if (Array.isArray(data)) {
+                    // Handle case where API returns array directly
+                    setPlayers(data);
+                    setTotalPages(1);
+                    setTotal(data.length);
+                } else {
+                    console.error('Unexpected leaderboard response format:', data);
+                    setPlayers([]);
+                    setTotalPages(1);
+                    setTotal(0);
+                }
             } catch (error) {
                 console.error('Error fetching leaderboard:', error);
+                setPlayers([]);
+                setTotalPages(1);
+                setTotal(0);
             } finally {
                 setLoading(false);
             }
@@ -58,7 +76,7 @@ export default function LeaderboardPage() {
                         <div className="flex items-center justify-center py-20">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
                         </div>
-                    ) : players.length === 0 ? (
+                    ) : !Array.isArray(players) || players.length === 0 ? (
                         <div className="text-center py-20 text-muted-foreground">
                             No players yet. Be the first to join!
                         </div>
@@ -74,7 +92,7 @@ export default function LeaderboardPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {players.map((player) => (
+                                    {players.map((player) => player && (
                                         <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
                                             <td className={`font-mono font-bold text-lg ${
                                                 player.rank === 1 ? 'rank-1' : 
