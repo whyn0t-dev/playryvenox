@@ -143,13 +143,13 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             suffix_str = str(suffix)
             candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
             suffix += 1
-            
+
         user = User(
-                id=supabase_user_id,
-                email=user_data.email.lower(),
-                username=candidate,
-                role="player"
-            )
+            id=supabase_user_id,
+            email=user_data.email.lower(),
+            username=candidate,
+            role="player"
+        )
 
         db.add(user)
         await db.commit()
@@ -162,9 +162,9 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     except Exception as e:
         print("AUTH ERROR:", repr(e))
         raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Internal server error during user sync"
-    )
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during user sync"
+        )
 
 # ===========================================
 # PYDANTIC MODELS WITH VALIDATION
@@ -229,7 +229,7 @@ INITIAL_UPGRADES = [
 VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
 
 def calculate_upgrade_cost(base_cost: float, level: int) -> float:
-    return round(base_cost * (1.15 ** level), 2)
+    return round(base_cost * (1.65 ** level), 2)
 
 # ===========================================
 # DAILY BONUS CONSTANTS
@@ -326,7 +326,7 @@ async def get_or_create_player_stats(db: AsyncSession, user_id: str) -> PlayerSt
         
     return stats
 
-async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> PlayerStats:
+async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> tuple[PlayerStats, float]:
     now = datetime.now(timezone.utc)
     last_calc = stats.last_calculated_at
     if last_calc.tzinfo is None:
@@ -338,6 +338,8 @@ async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> Pl
     max_offline_seconds = 24 * 60 * 60
     elapsed_seconds = min(elapsed_seconds, max_offline_seconds)
     
+    gained = 0.0
+    
     if elapsed_seconds > 0 and stats.passive_income > 0:
         gained = stats.passive_income * elapsed_seconds
         stats.current_users += gained
@@ -347,7 +349,7 @@ async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> Pl
     await db.commit()
     await db.refresh(stats)
     
-    return stats
+    return stats, gained
 
 async def recalculate_player_stats(db: AsyncSession, user_id: str):
     result = await db.execute(
@@ -470,7 +472,7 @@ async def get_me(user: User = Depends(get_current_user)):
 @limiter.limit("60/minute")
 async def get_game_state(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     stats = await get_or_create_player_stats(db, user.id)
-    stats = await recalculate_passive_income(db, stats)
+    stats, offline_earned = await recalculate_passive_income(db, stats)
     
     result = await db.execute(
         select(PlayerUpgrade)
@@ -504,14 +506,15 @@ async def get_game_state(request: Request, user: User = Depends(get_current_user
         "click_power": stats.click_power,
         "passive_income": stats.passive_income,
         "level": stats.level,
-        "upgrades": upgrades_data
+        "upgrades": upgrades_data,
+        "offline_earned": round(offline_earned, 2)
     }
 
 @game_router.post("/click")
 @limiter.limit("300/minute")
 async def click(request: Request, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     stats = await get_or_create_player_stats(db, user.id)
-    stats = await recalculate_passive_income(db, stats)
+    stats, _ = await recalculate_passive_income(db, stats)
     
     click_power = stats.click_power
     stats.current_users += click_power
@@ -544,7 +547,7 @@ async def buy_upgrade(request: Request, data: BuyUpgradeRequest, user: User = De
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upgrade not found")
     
     stats = await get_or_create_player_stats(db, user.id)
-    stats = await recalculate_passive_income(db, stats)
+    stats, _ = await recalculate_passive_income(db, stats)
     
     result = await db.execute(
         select(PlayerUpgrade).where(
@@ -655,7 +658,7 @@ async def get_top10(db: AsyncSession = Depends(get_db)):
 @api_router.get("/profile")
 async def get_profile(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     stats = await get_or_create_player_stats(db, user.id)
-    stats = await recalculate_passive_income(db, stats)
+    stats, _ = await recalculate_passive_income(db, stats)
     
     result = await db.execute(
         select(func.count(PlayerStats.id))
@@ -709,7 +712,7 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
     stats = await get_or_create_player_stats(db, user.id)
     
     # Also recalculate passive income while we're here
-    stats = await recalculate_passive_income(db, stats)
+    stats, _ = await recalculate_passive_income(db, stats)
     
     bonus_status = get_daily_bonus_status(stats)
     
@@ -798,5 +801,3 @@ async def startup():
             logger.info("Upgrades seeded successfully")
     
     logger.info(f"Database initialized (Environment: {ENVIRONMENT})")
-
-

@@ -18,7 +18,7 @@ export default function LeaderboardPage() {
             try {
                 const response = await axios.get(`${API}/leaderboard?page=${page}&limit=20`);
                 const data = response.data;
-                
+
                 // Safely extract players array
                 if (data && Array.isArray(data.players)) {
                     setPlayers(data.players);
@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
 
     return (
         <div className="min-h-screen py-8 px-4" data-testid="leaderboard-page">
-            <div className="container mx-auto max-w-4xl">
+            <div className="container mx-auto max-w-6xl">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 mb-4">
@@ -71,7 +71,7 @@ export default function LeaderboardPage() {
                 </div>
 
                 {/* Leaderboard Table */}
-                <div className="stats-card overflow-hidden">
+                <div className="stats-card overflow-hidden p-4 sm:p-6">
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -82,34 +82,33 @@ export default function LeaderboardPage() {
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="leaderboard-table" data-testid="leaderboard-table">
+                            <table className="leaderboard-table leaderboard-table-large" data-testid="leaderboard-table">
                                 <thead>
                                     <tr>
-                                        <th className="w-20">Rank</th>
+                                        <th className="w-28">Rank</th>
                                         <th>Player</th>
                                         <th className="text-right">Total Users</th>
-                                        <th className="text-right w-24">Level</th>
+                                        <th className="text-right w-32">Level</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {players.map((player) => player && (
                                         <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
-                                            <td className={`font-mono font-bold text-lg ${
-                                                player.rank === 1 ? 'rank-1' : 
-                                                player.rank === 2 ? 'rank-2' : 
-                                                player.rank === 3 ? 'rank-3' : ''
-                                            }`}>
+                                            <td className={`font-mono font-bold text-xl ${player.rank === 1 ? 'rank-1' :
+                                                    player.rank === 2 ? 'rank-2' :
+                                                        player.rank === 3 ? 'rank-3' : ''
+                                                }`}>
                                                 {player.rank === 1 && '🥇 '}
                                                 {player.rank === 2 && '🥈 '}
                                                 {player.rank === 3 && '🥉 '}
                                                 #{player.rank}
                                             </td>
-                                            <td className="font-medium text-lg">{player.username}</td>
-                                            <td className="text-right font-mono text-lg">
+                                            <td className="font-semibold text-xl">{player.username}</td>
+                                            <td className="text-right font-mono text-xl">
                                                 {formatNumber(player.total_users_generated)}
                                             </td>
                                             <td className="text-right">
-                                                <span className="px-3 py-1 bg-primary/10 text-primary font-medium">
+                                                <span className="inline-block px-4 py-2 bg-primary/10 text-primary font-semibold text-base border border-primary/20">
                                                     LVL {player.level}
                                                 </span>
                                             </td>

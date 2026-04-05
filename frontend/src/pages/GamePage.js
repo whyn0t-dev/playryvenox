@@ -20,6 +20,7 @@ export default function GamePage() {
     const feedbackIdRef = useRef(0);
     const clickerRef = useRef(null);
     const lastClickTime = useRef(0);
+    const hasShownOfflineToast = useRef(false);
 
     const getAuthHeaders = async () => {
         const {
@@ -38,6 +39,19 @@ export default function GamePage() {
         };
     };
 
+    const formatNumber = (num) => {
+        if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+        return Math.floor(num).toLocaleString();
+    };
+
+    const formatCost = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return Math.floor(num).toLocaleString();
+    };
+
     const fetchGameState = useCallback(async (showLoading = false) => {
         if (showLoading) setLoading(true);
 
@@ -45,6 +59,13 @@ export default function GamePage() {
             const headers = await getAuthHeaders();
             const response = await axios.get(`${API}/game/state`, { headers });
             setGameState(response.data);
+
+            if (!hasShownOfflineToast.current && response.data?.offline_earned > 0) {
+                toast.success(
+                    `Depuis votre absence, vous avez généré ${formatNumber(response.data.offline_earned)} users`
+                );
+                hasShownOfflineToast.current = true;
+            }
         } catch (error) {
             if (error.response?.status !== 401) {
                 toast.error('Failed to sync game state');
@@ -141,19 +162,6 @@ export default function GamePage() {
         } finally {
             setBuyingUpgrade(null);
         }
-    };
-
-    const formatNumber = (num) => {
-        if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
-        return Math.floor(num).toLocaleString();
-    };
-
-    const formatCost = (num) => {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return Math.floor(num).toLocaleString();
     };
 
     if (loading) {
@@ -296,11 +304,17 @@ export default function GamePage() {
 
                             <ScrollArea className="h-[420px] sm:h-[480px] pr-3">
                                 {/* Click Upgrades */}
-                                <div className="mb-5">
-                                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-2 px-1">
-                                        <MousePointer className="w-3.5 h-3.5" />
-                                        Click Power
-                                    </h3>
+                                <section className="mb-5 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-3 sm:p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-cyan-300">
+                                            <MousePointer className="w-3.5 h-3.5" />
+                                            Click Power
+                                        </h3>
+                                        <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
+                                            Boost manuel
+                                        </span>
+                                    </div>
+
                                     <div className="space-y-2">
                                         {clickUpgrades.map((upgrade, i) => (
                                             <UpgradeItem
@@ -310,17 +324,24 @@ export default function GamePage() {
                                                 buying={buyingUpgrade === upgrade.id}
                                                 formatCost={formatCost}
                                                 index={i}
+                                                variant="click"
                                             />
                                         ))}
                                     </div>
-                                </div>
+                                </section>
 
                                 {/* Passive Upgrades */}
-                                <div>
-                                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-2 px-1">
-                                        <Bot className="w-3.5 h-3.5" />
-                                        Passive Income
-                                    </h3>
+                                <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 sm:p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-emerald-300">
+                                            <Bot className="w-3.5 h-3.5" />
+                                            Passive Income
+                                        </h3>
+                                        <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-200">
+                                            Gain automatique
+                                        </span>
+                                    </div>
+
                                     <div className="space-y-2">
                                         {passiveUpgrades.map((upgrade, i) => (
                                             <UpgradeItem
@@ -330,10 +351,11 @@ export default function GamePage() {
                                                 buying={buyingUpgrade === upgrade.id}
                                                 formatCost={formatCost}
                                                 index={i}
+                                                variant="passive"
                                             />
                                         ))}
                                     </div>
-                                </div>
+                                </section>
                             </ScrollArea>
                         </div>
                     </div>
@@ -343,16 +365,40 @@ export default function GamePage() {
     );
 }
 
-function UpgradeItem({ upgrade, onBuy, buying, formatCost, index }) {
+function UpgradeItem({ upgrade, onBuy, buying, formatCost, index, variant = 'click' }) {
+    const isClick = variant === 'click';
+
     return (
         <div
-            className={`upgrade-card flex items-center justify-between gap-3 ${upgrade.can_afford ? 'can-afford' : ''}`}
+            className={`
+                upgrade-card flex items-center justify-between gap-3 rounded-lg border
+                ${upgrade.can_afford ? 'can-afford' : ''}
+                ${isClick
+                    ? 'border-cyan-500/20 bg-cyan-500/5'
+                    : 'border-emerald-500/20 bg-emerald-500/5'}
+            `}
             data-testid={`upgrade-${upgrade.id}`}
-            style={{ animationDelay: `${index * 50}ms` }}
+            style={{
+                animationDelay: `${index * 50}ms`,
+                borderLeftWidth: '3px',
+                borderLeftColor: isClick ? 'rgba(34,211,238,0.8)' : 'rgba(52,211,153,0.8)'
+            }}
         >
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-sm sm:text-base truncate">{upgrade.name}</span>
+
+                    <span
+                        className={`
+                            text-[10px] sm:text-xs px-2 py-0.5 rounded-full border
+                            ${isClick
+                                ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200'
+                                : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'}
+                        `}
+                    >
+                        {isClick ? 'Click' : 'Passive'}
+                    </span>
+
                     {upgrade.level > 0 && (
                         <span className="level-badge text-xs flex items-center gap-0.5">
                             <ChevronUp className="w-3 h-3" />
@@ -360,21 +406,32 @@ function UpgradeItem({ upgrade, onBuy, buying, formatCost, index }) {
                         </span>
                     )}
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
+
+                <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                     {upgrade.description}
                 </div>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
                 <div className="text-right">
-                    <div className={`font-mono text-xs sm:text-sm ${upgrade.can_afford ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <div
+                        className={`font-mono text-xs sm:text-sm ${upgrade.can_afford ? 'text-foreground' : 'text-muted-foreground'
+                            }`}
+                    >
                         {formatCost(upgrade.cost)}
                     </div>
                 </div>
+
                 <Button
                     onClick={() => onBuy(upgrade.id, upgrade.name)}
                     disabled={!upgrade.can_afford || buying}
-                    className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm btn-active"
+                    className={`
+                        h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-sm btn-active
+                        ${isClick
+                            ? 'bg-cyan-400 text-black hover:bg-cyan-300'
+                            : 'bg-emerald-400 text-black hover:bg-emerald-300'}
+                        disabled:opacity-30 disabled:cursor-not-allowed
+                    `}
                     data-testid={`buy-${upgrade.id}-btn`}
                 >
                     {buying ? (
