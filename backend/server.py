@@ -446,10 +446,10 @@ async def login(request: Request, data: UserLogin, response: Response, db: Async
 
     cookie_settings = {
     "httponly": True,
-    "secure": IS_PRODUCTION,
-    "samesite": "lax",
+    "secure": True,
+    "samesite": "none",
     "path": "/"
-    }
+}
 
 # Cookie de session : pas de max_age
     response.set_cookie(key="access_token", value=access_token, **cookie_settings)
@@ -458,7 +458,7 @@ async def login(request: Request, data: UserLogin, response: Response, db: Async
 
 @auth_router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("access_token", path="/", samesite="none", secure=True)
     return {"message": "Logged out successfully"}
 
 @auth_router.get("/me")
