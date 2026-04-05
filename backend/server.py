@@ -800,7 +800,7 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
 # INCLUDE ROUTERS & MIDDLEWARE
 # ===========================================
 # Health check
-@api_router.get("/api/health")
+@api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "environment": ENVIRONMENT}
 
