@@ -141,13 +141,12 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
             suffix += 1
 
-        user = User(
-            id=user_data.id,
-            email=user_data.email.lower(),
+            user = User(
+            id=user_data["id"],
+            email=user_data["email"].lower(),
             username=candidate,
-            password_hash="SUPABASE_AUTH",
             role="player"
-        )
+            )
 
         db.add(user)
         await db.commit()
@@ -160,9 +159,9 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     except Exception as e:
         print("AUTH ERROR:", repr(e))
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
-        )
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Internal server error during user sync"
+    )
 
 # ===========================================
 # PYDANTIC MODELS WITH VALIDATION

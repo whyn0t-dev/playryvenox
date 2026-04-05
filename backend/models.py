@@ -16,13 +16,8 @@ class User(Base):
     id = Column(String(36), primary_key=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
     role = Column(String(50), default='player')
     created_at = Column(DateTime(timezone=True), default=utc_now)
-    
-    # Relationships
-    player_stats = relationship('PlayerStats', back_populates='user', uselist=False, cascade='all, delete-orphan')
-    player_upgrades = relationship('PlayerUpgrade', back_populates='user', cascade='all, delete-orphan')
 
 
 class PlayerStats(Base):
