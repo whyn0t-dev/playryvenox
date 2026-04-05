@@ -24,6 +24,8 @@ from models import User, PlayerStats, Upgrade, PlayerUpgrade
 
 from supabase import create_client, Client
 
+import uuid
+
 # ===========================================
 # CONFIGURATION
 # ===========================================
@@ -103,8 +105,9 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             )
 
         # 🔑 On cherche par ID (correct)
+        supabase_user_id = uuid.UUID(user_data.id)
         result = await db.execute(
-            select(User).where(User.id == user_data.id)
+            select(User).where(User.id == supabase_user_id)
         )
         user = result.scalar_one_or_none()
 
@@ -140,9 +143,9 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             suffix_str = str(suffix)
             candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
             suffix += 1
-
-            user = User(
-                id=user_data.id,
+            
+        user = User(
+                id=supabase_user_id,
                 email=user_data.email.lower(),
                 username=candidate,
                 role="player"
