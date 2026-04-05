@@ -5,9 +5,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
-def generate_uuid():
-    return str(uuid.uuid4())
-
 def utc_now():
     return datetime.now(timezone.utc)
 
@@ -27,7 +24,7 @@ class User(Base):
 class PlayerStats(Base):
     __tablename__ = 'player_stats'
     
-    id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False, index=True)
     current_users = Column(Float, default=0)
     total_users_generated = Column(Float, default=0, index=True)
@@ -61,7 +58,7 @@ class Upgrade(Base):
 class PlayerUpgrade(Base):
     __tablename__ = 'player_upgrades'
     
-    id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     upgrade_id = Column(String(50), ForeignKey('upgrades.id', ondelete='CASCADE'), nullable=False, index=True)
     level = Column(Integer, default=0)
