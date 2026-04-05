@@ -7,12 +7,12 @@ Create "AI Startup Clicker" - an idle/clicker web game where players:
 - Compete on a global leaderboard based on total_users_generated
 - All game logic server-side (anti-cheat)
 
-## Architecture (UPDATED)
+## Architecture
 - **Frontend**: React with Tailwind CSS, Shadcn UI components
-- **Backend**: FastAPI (Python)
-- **Database**: **Supabase PostgreSQL** (migrated from MongoDB)
+- **Backend**: FastAPI (Python) with rate limiting
+- **Database**: Supabase PostgreSQL
 - **ORM**: SQLAlchemy with asyncpg (async)
-- **Auth**: JWT tokens with HTTP-only cookies
+- **Auth**: JWT tokens with HTTP-only cookies (secure in production)
 
 ## Database Schema (PostgreSQL/Supabase)
 
@@ -22,64 +22,141 @@ Create "AI Startup Clicker" - an idle/clicker web game where players:
 3. **upgrades** - Upgrade definitions (id, name, type, effect, base_cost, description)
 4. **player_upgrades** - Player's upgrade levels (user_id, upgrade_id, level)
 
-### Indexes
-- users.email (unique)
-- users.username (unique)
-- player_stats.user_id (unique)
-- player_stats.total_users_generated (DESC - for leaderboard)
-- player_upgrades (user_id, upgrade_id) composite unique
+## Implementation History
 
-## What's Been Implemented (January 2026)
+### Phase 1: MVP (January 2026)
+- ✅ Core game loop (click, upgrades, passive income)
+- ✅ User authentication (JWT)
+- ✅ 10 upgrades (5 click, 5 passive)
+- ✅ Global leaderboard
+- ✅ Dark tech/startup theme
 
-### Backend (FastAPI + PostgreSQL)
-- `/api/auth/register` - User registration
-- `/api/auth/login` - User login with JWT
-- `/api/auth/logout` - Clear session
-- `/api/auth/me` - Get current user
-- `/api/game/state` - Get full game state with upgrades
-- `/api/game/click` - Process click action
-- `/api/game/buy-upgrade` - Purchase upgrade
-- `/api/leaderboard` - Paginated leaderboard
-- `/api/leaderboard/top10` - Top 10 players
-- `/api/profile` - User profile with stats
+### Phase 2: Hardening & Polish (January 2026)
+- ✅ Password validation (8+ chars, letter + number required)
+- ✅ Username validation (3-30 chars, alphanumeric + underscore)
+- ✅ Rate limiting on auth endpoints (5/min register, 10/min login)
+- ✅ Rate limiting on game endpoints (60/min state, 300/min click)
+- ✅ Secure cookies in production (httponly, secure, samesite)
+- ✅ Token refresh endpoint
+- ✅ Improved error messages (user-friendly)
+- ✅ Password strength indicator on registration
+- ✅ Better animations (click feedback, counter bump, fade-in)
+- ✅ Offline earnings cap (24 hours max)
+- ✅ Health check endpoint
+- ✅ Production/development environment switch
+- ✅ Deployment documentation
+- ✅ `.env.example` file
 
-### Frontend (React)
-- Home page with hero and top 10 leaderboard
-- Login/Register pages
-- Game page with clicker, stats, and upgrades
-- Leaderboard page with pagination
-- Profile page with user stats
-- Responsive navbar with mobile menu
+## Security Features
+- bcrypt password hashing (12 rounds)
+- JWT tokens (60 min access, 7 day refresh)
+- HTTP-only cookies
+- CORS configuration
+- Rate limiting (slowapi)
+- Input validation (Pydantic)
+- Server-side game logic (anti-cheat)
+- No sensitive data in responses
 
-### Game Mechanics
-- Click power starts at 1, increases with click upgrades
-- Passive income calculated based on time elapsed
-- Upgrade costs: base_cost × 1.15^level
-- Level = 1 + (total_upgrades / 5)
+## API Endpoints
 
-### Upgrades Implemented
-**Click Power:**
-- Landing Page (+1, cost: 15)
-- Email Capture (+2, cost: 100)
-- Growth Copywriting (+5, cost: 500)
-- Paid Ads (+10, cost: 2000)
-- Viral Referral Loop (+25, cost: 10000)
+### Auth
+- `POST /api/auth/register` - Create account (5/min)
+- `POST /api/auth/login` - Login (10/min)
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/refresh` - Refresh access token
 
-**Passive Income:**
-- Intern (+1/sec, cost: 25)
-- Automation Bot (+5/sec, cost: 200)
-- AI Agent (+20/sec, cost: 1000)
-- Cloud Infrastructure (+75/sec, cost: 5000)
-- Global Expansion (+250/sec, cost: 25000)
+### Game
+- `GET /api/game/state` - Get game state (60/min)
+- `POST /api/game/click` - Click action (300/min)
+- `POST /api/game/buy-upgrade` - Buy upgrade (60/min)
 
-## Migration Log
-- **2026-01-XX**: Migrated from MongoDB to Supabase PostgreSQL
-- SQLAlchemy ORM with async support (asyncpg)
-- Transaction Pooler connection (port 6543)
-- Tables created via SQLAlchemy Base.metadata.create_all()
+### Other
+- `GET /api/leaderboard` - Paginated leaderboard (30/min)
+- `GET /api/leaderboard/top10` - Top 10 players
+- `GET /api/profile` - User profile
+- `GET /api/health` - Health check
 
-## Next Tasks
-1. Add prestige system for long-term engagement
-2. Implement achievements to reward milestones
-3. Add sound effects for clicks and purchases
-4. Consider adding daily rewards for retention
+## Upgrades
+
+### Click Power
+| ID | Name | Effect | Base Cost |
+|----|------|--------|-----------|
+| landing_page | Landing Page | +1/click | 15 |
+| email_capture | Email Capture | +2/click | 100 |
+| growth_copywriting | Growth Copywriting | +5/click | 500 |
+| paid_ads | Paid Ads | +10/click | 2,000 |
+| viral_referral | Viral Referral Loop | +25/click | 10,000 |
+
+### Passive Income
+| ID | Name | Effect | Base Cost |
+|----|------|--------|-----------|
+| intern | Intern | +1/sec | 25 |
+| automation_bot | Automation Bot | +5/sec | 200 |
+| ai_agent | AI Agent | +20/sec | 1,000 |
+| cloud_infra | Cloud Infrastructure | +75/sec | 5,000 |
+| global_expansion | Global Expansion | +250/sec | 25,000 |
+
+### Cost Formula
+`cost = base_cost × 1.15^level`
+
+## Files Structure
+
+```
+/app
+├── backend/
+│   ├── server.py          # Main FastAPI application
+│   ├── database.py        # SQLAlchemy async config
+│   ├── models.py          # Database models
+│   ├── requirements.txt   # Python dependencies
+│   ├── schema.sql         # Reference SQL schema
+│   ├── .env               # Environment variables
+│   └── .env.example       # Environment template
+├── frontend/
+│   ├── src/
+│   │   ├── App.js         # Main React component
+│   │   ├── App.css        # Component styles
+│   │   ├── index.css      # Global styles (Tailwind)
+│   │   ├── contexts/
+│   │   │   └── AuthContext.js
+│   │   ├── pages/
+│   │   │   ├── HomePage.js
+│   │   │   ├── LoginPage.js
+│   │   │   ├── RegisterPage.js
+│   │   │   ├── GamePage.js
+│   │   │   ├── LeaderboardPage.js
+│   │   │   └── ProfilePage.js
+│   │   └── components/
+│   │       ├── Navbar.js
+│   │       ├── ProtectedRoute.js
+│   │       └── ui/ (shadcn components)
+│   └── .env
+├── DEPLOYMENT.md          # Deployment guide
+├── PHASE3_ROADMAP.md      # Future features roadmap
+└── memory/
+    ├── PRD.md             # This file
+    └── test_credentials.md
+```
+
+## Phase 3 Roadmap (Planned)
+
+### Prestige System
+- Reset progress for permanent multipliers
+- Unlocks at 1M total users
+- Formula: `prestige_points = sqrt(total_users / 1,000,000)`
+
+### Achievements
+- Click milestones (1, 100, 10K, 1M clicks)
+- User milestones (100, 10K, 1M, 10B users)
+- Upgrade milestones
+- Prestige milestones
+
+### Daily Bonus
+- Login streak rewards
+- Day 1: 100 users → Day 7: 10,000 users
+- Streak resets on missed day
+
+## Test Credentials
+- Email: pguser@test.com
+- Password: testpass123
+- Username: PostgresPlayer
