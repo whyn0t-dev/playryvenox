@@ -119,12 +119,17 @@ export default function DailyBonus({ onClaim }) {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in" data-testid="daily-bonus-modal">
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in" 
+                    data-testid="daily-bonus-modal"
+                    onClick={() => setShowModal(false)}
+                >
                     <div className="relative w-full max-w-md bg-card border border-border rounded-sm p-6 slide-in-right" onClick={e => e.stopPropagation()}>
                         {/* Close button */}
                         <button 
                             onClick={() => setShowModal(false)}
-                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10 p-1"
+                            data-testid="daily-bonus-close-btn"
                         >
                             <X className="w-5 h-5" />
                         </button>
