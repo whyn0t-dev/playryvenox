@@ -1,0 +1,100 @@
+{
+  "project_name": "AI Startup Clicker",
+  "domain": "saas_app / gaming_dashboard",
+  "theme": "dark",
+  "archetype": "4",
+  "archetype_name": "Swiss & High-Contrast (Terminal/Tech Startup Variant)",
+  "emotion_and_vibe": "Command-center focus, technical, elite, fast-paced startup growth. Authority and clarity.",
+  "color_system": {
+    "background": "hsl(0, 0%, 4%)",
+    "foreground": "hsl(0, 0%, 98%)",
+    "primary": "hsl(190, 100%, 50%)", 
+    "primary_foreground": "hsl(0, 0%, 4%)",
+    "secondary": "hsl(0, 0%, 12%)",
+    "secondary_foreground": "hsl(0, 0%, 98%)",
+    "muted": "hsl(0, 0%, 12%)",
+    "muted_foreground": "hsl(0, 0%, 60%)",
+    "accent": "hsl(190, 100%, 50%)",
+    "accent_foreground": "hsl(0, 0%, 4%)",
+    "destructive": "hsl(0, 100%, 50%)",
+    "destructive_foreground": "hsl(0, 0%, 98%)",
+    "border": "hsl(0, 0%, 15%)",
+    "input": "hsl(0, 0%, 15%)",
+    "ring": "hsl(190, 100%, 50%)"
+  },
+  "typography": {
+    "font_families": {
+      "heading": "Outfit, sans-serif",
+      "body": "IBM Plex Sans, sans-serif",
+      "mono": "IBM Plex Mono, monospace"
+    },
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl tracking-tight font-semibold",
+      "h4": "text-lg sm:text-xl font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm",
+      "overline": "uppercase text-xs tracking-[0.2em] font-bold text-muted-foreground",
+      "numbers": "font-mono tracking-tight"
+    },
+    "rules": [
+      "No Inter for headings.",
+      "Use IBM Plex Mono for all game numbers, counters, and stats.",
+      "Tight letter spacing on headings.",
+      "Huge contrast between headings and body text."
+    ]
+  },
+  "spacing_and_layout": {
+    "grid_system": "Mode B: The 'Control Room' Grid",
+    "base_grid": "grid-cols-1 lg:grid-cols-12 gap-1",
+    "layout_strategy": [
+      "Use 'Grid Borders (The Technical Look)' surface strategy.",
+      "Use 1px solid borders (border-border) with no soft shadows for containers to create a rigid, technical structure.",
+      "Dense data presentation. The main game UI should feel like a Bloomberg terminal or dense SaaS dashboard.",
+      "Containers with borders must have internal padding (p-6 or p-8)."
+    ]
+  },
+  "surface_strategies": {
+    "headers": "Crystal Glass: bg-black/60 backdrop-blur-xl border-b border-white/10",
+    "dashboard_cards": "Flat solid background (bg-background or bg-secondary/50), 1px subtle border, no shadow. Hover: slight lift and border glow.",
+    "buttons": "Sharp edges (rounded-none or max 4px radius). Primary buttons use Electric Blue (cyan) background with black text. High contrast."
+  },
+  "motion_and_interactions": {
+    "click_button": "The main 'Launch Campaign' button must scale down significantly on active/press (active:scale-95) with a quick spring animation. Needs high tactile feel.",
+    "floating_text": "When clicking, spawn '+1' (or '+X') text elements at the click coordinates that float upwards and fade out using Framer Motion (AnimatePresence).",
+    "hover_states": "Rows in the upgrade list should highlight background (hover:bg-secondary) with explicitly set text color. Buy buttons should have clear disabled states if cost > current users.",
+    "transitions": "Use transition-colors duration-200 for all interactive elements."
+  },
+  "components_instructions": {
+    "general": [
+      "Use pure HTML+Tailwind for the main game layout to achieve the technical grid look.",
+      "Use Shadcn UI for forms (Login/Register), Tables (Leaderboard), and Tabs/Dialogs if needed.",
+      "Customize Shadcn components to remove rounding (rounded-sm or rounded-none) and remove shadows.",
+      "Always include data-testid attributes for interactive elements."
+    ],
+    "game_ui": {
+      "counter": "Massive font (text-6xl+ font-mono) to display total users. Add a glowing text-shadow effect (drop-shadow-[0_0_15px_rgba(0,229,255,0.5)]).",
+      "clicker": "Central dominant element. Can be a massive bordered box or circular target. Use a distinct border or inner glow.",
+      "upgrades_list": "Dense table/list format. Left side: Upgrade name and effect (+1/sec). Right side: Cost and Buy button. If player cannot afford, dim the button and disable it."
+    }
+  },
+  "media": {
+    "images": [
+      {
+        "category": "app_background",
+        "url": "https://static.prod-images.emergentagent.com/jobs/e976d121-276f-4d16-92bc-f283853bc37f/images/15cd48504be4548418ec2140ac124f6236384a622f6ff24e4d19609bd7a3c58f.png",
+        "description": "Abstract dark tech texture, glowing particles in deep indigo and electric blue. Use as a fixed background for the app with low opacity (opacity-20 to 30) or as a mix-blend-mode overlay to add texture."
+      },
+      {
+        "category": "hero_image",
+        "url": "https://images.unsplash.com/photo-1639066648921-82d4500abf1a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwxfHxkYXJrJTIwc2VydmVyJTIwcm9vbSUyMHRlY2h8ZW58MHx8fHwxNzc1Mzc3NzgzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Dark server room. Use for the Home/Landing page background with a heavy dark gradient overlay (bg-black/70)."
+      }
+    ]
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure all text meets minimum 4.5:1 contrast ratio against the dark background.",
+    "testing": "Add data-testid to the main clicker button, upgrade buy buttons, login inputs, and navigation links."
+  }
+}
