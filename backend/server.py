@@ -88,8 +88,6 @@ def create_access_token(user_id: str, email: str) -> str:
         "type": "access"
     }
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
-
-def create_refresh_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "exp": datetime.now(timezone.utc) + timedelta(days=7),
@@ -412,17 +410,16 @@ async def register(request: Request, data: UserRegister, response: Response, db:
     
     # Create tokens
     access_token = create_access_token(user.id, email)
-    refresh_token = create_refresh_token(user.id)
-    
-    # Set cookies (secure in production)
+
     cookie_settings = {
-        "httponly": True,
-        "secure": IS_PRODUCTION,
-        "samesite": "lax",
-        "path": "/"
-    }
-    response.set_cookie(key="access_token", value=access_token, max_age=3600, **cookie_settings)
-    response.set_cookie(key="refresh_token", value=refresh_token, max_age=604800, **cookie_settings)
+    "httponly": True,
+    "secure": IS_PRODUCTION,
+    "samesite": "lax",
+    "path": "/"
+}
+
+# Cookie de session : pas de max_age
+    response.set_cookie(key="access_token", value=access_token, **cookie_settings)
     
     # Initialize player stats
     await get_or_create_player_stats(db, user.id)
@@ -446,31 +443,28 @@ async def login(request: Request, data: UserLogin, response: Response, db: Async
     
     # Create tokens
     access_token = create_access_token(user.id, email)
-    refresh_token = create_refresh_token(user.id)
-    
-    # Set cookies
+
     cookie_settings = {
-        "httponly": True,
-        "secure": IS_PRODUCTION,
-        "samesite": "lax",
-        "path": "/"
+    "httponly": True,
+    "secure": IS_PRODUCTION,
+    "samesite": "lax",
+    "path": "/"
     }
-    response.set_cookie(key="access_token", value=access_token, max_age=3600, **cookie_settings)
-    response.set_cookie(key="refresh_token", value=refresh_token, max_age=604800, **cookie_settings)
+
+# Cookie de session : pas de max_age
+    response.set_cookie(key="access_token", value=access_token, **cookie_settings)
     
     return {"id": user.id, "email": email, "username": user.username, "role": user.role}
 
 @auth_router.post("/logout")
 async def logout(response: Response):
     response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/")
     return {"message": "Logged out successfully"}
 
 @auth_router.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
     return {"id": user.id, "email": user.email, "username": user.username, "role": user.role}
 
-@auth_router.post("/refresh")
 @limiter.limit("30/minute")
 async def refresh_token(request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     token = request.cookies.get("refresh_token")
@@ -495,7 +489,7 @@ async def refresh_token(request: Request, response: Response, db: AsyncSession =
             "samesite": "lax",
             "path": "/"
         }
-        response.set_cookie(key="access_token", value=access_token, max_age=3600, **cookie_settings)
+        response.set_cookie(key="access_token", value=access_token, **cookie_settings)
         
         return {"message": "Token refreshed"}
         
