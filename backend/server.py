@@ -239,15 +239,16 @@ class TransferUsersRequest(BaseModel):
 # ===========================================
 INITIAL_UPGRADES = [
     {"id": "landing_page", "name": "Landing Page", "type": "click", "effect": 1, "base_cost": 15, "description": "+1 per click", "sort_order": 1},
-    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 100, "description": "+2 per click", "sort_order": 2},
-    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 5, "base_cost": 500, "description": "+5 per click", "sort_order": 3},
-    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 10, "base_cost": 2000, "description": "+10 per click", "sort_order": 4},
-    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 25, "base_cost": 10000, "description": "+25 per click", "sort_order": 5},
-    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 25, "description": "+1/sec", "sort_order": 6},
-    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 5, "base_cost": 200, "description": "+5/sec", "sort_order": 7},
-    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 20, "base_cost": 1000, "description": "+20/sec", "sort_order": 8},
-    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 75, "base_cost": 5000, "description": "+75/sec", "sort_order": 9},
-    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 250, "base_cost": 25000, "description": "+250/sec", "sort_order": 10},
+    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 120, "description": "+2 per click", "sort_order": 2},
+    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 4, "base_cost": 650, "description": "+4 per click", "sort_order": 3},
+    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 8, "base_cost": 2800, "description": "+8 per click", "sort_order": 4},
+    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 18, "base_cost": 14000, "description": "+18 per click", "sort_order": 5},
+
+    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 40, "description": "+1/sec", "sort_order": 6},
+    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 3, "base_cost": 350, "description": "+3/sec", "sort_order": 7},
+    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 10, "base_cost": 1800, "description": "+10/sec", "sort_order": 8},
+    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 40, "base_cost": 9000, "description": "+40/sec", "sort_order": 9},
+    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 120, "base_cost": 45000, "description": "+120/sec", "sort_order": 10},
 ]
 
 VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
@@ -258,31 +259,31 @@ VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
 TRANSFER_MAX_AMOUNT = 1000
 TRANSFER_WINDOW_DAYS = 5
 TRANSFER_FEE_PERCENT = 0.10  # 10%
-TRANSFER_MIN_LEVEL = 3
+TRANSFER_MIN_LEVEL = 500
 
 def calculate_upgrade_cost(base_cost: float, level: int) -> float:
-    return round(base_cost * (1.65 ** level), 2)
+    return round(base_cost * (1.85 ** level), 2)
 
 # ===========================================
 # DAILY BONUS CONSTANTS
 # ===========================================
 DAILY_BONUS_COOLDOWN_HOURS = 24
-DAILY_BONUS_BASE_REWARD = 100  # Base users reward
+DAILY_BONUS_BASE_REWARD = 50  # Base users reward
 DAILY_STREAK_MULTIPLIERS = {
-    1: 1.0,    # Day 1: 100 users
-    2: 1.5,    # Day 2: 150 users
-    3: 2.0,    # Day 3: 200 users
-    4: 3.0,    # Day 4: 300 users
-    5: 4.0,    # Day 5: 400 users
-    6: 5.0,    # Day 6: 500 users
-    7: 10.0,   # Day 7: 1000 users (big bonus!)
+    1: 1.0,
+    2: 1.2,
+    3: 1.5,
+    4: 2.0,
+    5: 2.5,
+    6: 3.0,
+    7: 5.0,
 }
 MAX_STREAK_DAYS = 7  # Streak resets after day 7
 
 def calculate_daily_bonus(level: int, streak: int) -> int:
     """Calculate daily bonus based on player level and streak"""
     # Base reward scales with level
-    level_bonus = DAILY_BONUS_BASE_REWARD * (1 + (level - 1) * 0.5)
+    level_bonus = DAILY_BONUS_BASE_REWARD * (1 + (level - 1) * 0.15)
     # Apply streak multiplier
     streak_day = min(streak + 1, MAX_STREAK_DAYS)  # +1 because streak is current, we're calculating next
     multiplier = DAILY_STREAK_MULTIPLIERS.get(streak_day, 1.0)
@@ -363,24 +364,25 @@ async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> tu
     last_calc = stats.last_calculated_at
     if last_calc.tzinfo is None:
         last_calc = last_calc.replace(tzinfo=timezone.utc)
-    
+
     elapsed_seconds = (now - last_calc).total_seconds()
-    
-    # Cap offline earnings to 24 hours max
-    max_offline_seconds = 24 * 60 * 60
+
+    # Cap offline earnings to 4 hours max
+    max_offline_seconds = 4 * 60 * 60
     elapsed_seconds = min(elapsed_seconds, max_offline_seconds)
-    
+
+    offline_multiplier = 0.5
     gained = 0.0
-    
+
     if elapsed_seconds > 0 and stats.passive_income > 0:
-        gained = stats.passive_income * elapsed_seconds
+        gained = stats.passive_income * elapsed_seconds * offline_multiplier
         stats.current_users += gained
         stats.total_users_generated += gained
-    
+
     stats.last_calculated_at = now
     await db.commit()
     await db.refresh(stats)
-    
+
     return stats, gained
 
 async def recalculate_player_stats(db: AsyncSession, user_id: str):
@@ -392,18 +394,18 @@ async def recalculate_player_stats(db: AsyncSession, user_id: str):
     player_upgrades = result.scalars().all()
     
     click_power = 1
-    passive_income = 0
+    passive_income = 0.0
     total_levels = 0
     
     for pu in player_upgrades:
         if pu.level > 0:
             total_levels += pu.level
             if pu.upgrade.type == "click":
-                click_power += pu.upgrade.effect * pu.level
+                click_power += max(1, int(pu.upgrade.effect * pu.level * 0.7)) # Diminishing returns for click upgrades
             else:
-                passive_income += pu.upgrade.effect * pu.level
+                passive_income += pu.upgrade.effect * (pu.level ** 0.85)
     
-    level = 1 + (total_levels // 5)
+    level = 1 + (total_levels // 10)  # Level up for every 10 upgrade levels
     
     await db.execute(
         update(PlayerStats)

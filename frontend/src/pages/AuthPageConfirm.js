@@ -47,6 +47,12 @@ export default function AuthConfirmPage() {
           return;
         }
 
+        // Empêche la connexion automatique après confirmation
+        await supabase.auth.signOut();
+
+        // Nettoie l’URL si tu veux éviter de laisser le token visible
+        window.history.replaceState({}, document.title, "/auth/confirm");
+
         setStatus("success");
         setTitle("Compte confirmé avec succès");
         setMessage(
