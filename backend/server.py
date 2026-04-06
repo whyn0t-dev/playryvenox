@@ -719,6 +719,46 @@ async def get_profile(user: User = Depends(get_current_user), db: AsyncSession =
         "created_at": user.created_at.isoformat() if user.created_at else None
     }
 
+@api_router.delete("/profile", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_profile(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        # Supprimer d'abord le compte Auth côté Supabase
+        supabase.auth.admin.delete_user(str(user.id))
+
+        # Puis supprimer les données locales
+        await db.execute(
+            PlayerUpgrade.__table__.delete().where(PlayerUpgrade.user_id == user.id)
+        )
+
+        await db.execute(
+            UserTransfer.__table__.delete().where(
+                (UserTransfer.sender_id == user.id) | (UserTransfer.recipient_id == user.id)
+            )
+        )
+
+        await db.execute(
+            PlayerStats.__table__.delete().where(PlayerStats.user_id == user.id)
+        )
+
+        await db.execute(
+            User.__table__.delete().where(User.id == user.id)
+        )
+
+        await db.commit()
+
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Delete profile error for user {user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to delete profile"
+        )
+
 # ===========================================
 # DAILY BONUS ROUTES
 # ===========================================

@@ -1,18 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Trophy, Users, MousePointer, Bot, TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import {
+    User,
+    Trophy,
+    Users,
+    MousePointer,
+    Bot,
+    TrendingUp,
+    Calendar,
+    Loader2,
+    Zap,
+    Shield,
+    Skull,
+    ChevronRight,
+    Sparkles,
+    BarChart3,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
+import { Button } from '../components/ui/button';
 import DailyBonus from '../components/DailyBonus';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const { t, i18n } = useTranslation();
+
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState(false);
 
     const getAuthHeaders = useCallback(async () => {
         const {
@@ -72,6 +92,27 @@ export default function ProfilePage() {
         fetchProfile();
     };
 
+    const handleDeleteProfile = async () => {
+        const confirmed = window.confirm(t('profile.delete.confirm'));
+
+        if (!confirmed || deleting) return;
+
+        setDeleting(true);
+
+        try {
+            const headers = await getAuthHeaders();
+            await axios.delete(`${API}/profile`, { headers });
+
+            await logout();
+            navigate('/');
+        } catch (error) {
+            console.error('Error deleting profile:', error);
+            alert(error.response?.data?.detail || t('profile.delete.error'));
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -80,113 +121,261 @@ export default function ProfilePage() {
         );
     }
 
+    const username = profile?.username || user?.username;
+    const email = profile?.email || user?.email;
+    const level = profile?.level || 1;
+    const currentUsers = profile?.current_users || 0;
+    const totalGenerated = profile?.total_users_generated || 0;
+    const clickPower = profile?.click_power || 1;
+    const passiveIncome = profile?.passive_income || 0;
+    const totalUpgrades = profile?.total_upgrades || 0;
+    const rank = profile?.rank;
+    const createdAt = profile?.created_at;
+
     return (
         <div className="min-h-screen py-8 px-4" data-testid="profile-page">
-            <div className="container mx-auto max-w-3xl">
+            <div className="container mx-auto max-w-6xl">
                 <div className="flex justify-end mb-4">
                     <DailyBonus onClaim={handleDailyClaim} />
                 </div>
 
-                <div className="stats-card mb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 bg-primary/10 border border-primary/30 flex items-center justify-center rounded-sm">
-                            <User className="w-10 h-10 text-primary" />
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div className="xl:col-span-2 space-y-6">
+                        <div className="relative overflow-hidden rounded-sm border border-border bg-card">
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-yellow-500/10 pointer-events-none" />
+
+                            <div className="relative p-6 sm:p-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary/10 border border-primary/30 flex items-center justify-center rounded-sm shadow-lg">
+                                            <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+                                        </div>
+
+                                        <div>
+                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                <h1
+                                                    className="text-3xl sm:text-4xl font-bold tracking-tight"
+                                                    data-testid="profile-username"
+                                                >
+                                                    {username}
+                                                </h1>
+
+                                                <span className="px-3 py-1 rounded-sm text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                                                    {t('profile.level', { level })}
+                                                </span>
+
+                                                <span className="px-3 py-1 rounded-sm text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <Sparkles className="w-3 h-3" />
+                                                        {rank
+                                                            ? t('profile.rank', { rank })
+                                                            : t('profile.rankFallback')}
+                                                    </span>
+                                                </span>
+                                            </div>
+
+                                            <p
+                                                className="text-muted-foreground mb-3 break-all"
+                                                data-testid="profile-email"
+                                            >
+                                                {email}
+                                            </p>
+
+                                            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                                                <span className="inline-flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4" />
+                                                    {t('profile.memberSince')} {formatDate(createdAt)}
+                                                </span>
+
+                                                <span className="inline-flex items-center gap-2">
+                                                    <Trophy className="w-4 h-4" />
+                                                    {t('profile.globalRank')} {rank ? `#${rank}` : '#-'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 min-w-[220px]">
+                                        <div className="rounded-sm border border-border bg-background/50 p-4">
+                                            <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                                                {t('profile.stats.currentUsers')}
+                                            </div>
+                                            <div className="text-2xl font-bold font-mono text-glow">
+                                                {formatNumber(currentUsers)}
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-sm border border-border bg-background/50 p-4">
+                                            <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                                                {t('profile.stats.totalGenerated')}
+                                            </div>
+                                            <div className="text-2xl font-bold font-mono">
+                                                {formatNumber(totalGenerated)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold" data-testid="profile-username">
-                                {profile?.username || user?.username}
-                            </h1>
-                            <p className="text-muted-foreground" data-testid="profile-email">
-                                {profile?.email || user?.email}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 flex-wrap">
-                                <span className="px-3 py-1 bg-primary/10 text-primary font-medium rounded-sm">
-                                    {t('profile.level', { level: profile?.level || 1 })}
-                                </span>
-                                <span className="flex items-center gap-1 text-muted-foreground">
-                                    <Trophy className="w-4 h-4" />
-                                    {profile?.rank
-                                        ? t('profile.rank', { rank: profile.rank })
-                                        : t('profile.rankFallback')}
-                                </span>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                            <div className="rounded-sm border border-border bg-card p-5" data-testid="profile-current-users">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('profile.stats.currentUsers')}
+                                    </span>
+                                    <Users className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="text-3xl font-mono font-bold text-glow">
+                                    {formatNumber(currentUsers)}
+                                </div>
+                            </div>
+
+                            <div className="rounded-sm border border-border bg-card p-5" data-testid="profile-total-users">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('profile.stats.totalGenerated')}
+                                    </span>
+                                    <TrendingUp className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="text-3xl font-mono font-bold">
+                                    {formatNumber(totalGenerated)}
+                                </div>
+                            </div>
+
+                            <div className="rounded-sm border border-border bg-card p-5" data-testid="profile-click-power">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('profile.stats.clickPower')}
+                                    </span>
+                                    <MousePointer className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="text-3xl font-mono font-bold text-primary">
+                                    {t('profile.clickPowerValue', { amount: clickPower })}
+                                </div>
+                            </div>
+
+                            <div className="rounded-sm border border-border bg-card p-5" data-testid="profile-passive-income">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('profile.stats.passiveIncome')}
+                                    </span>
+                                    <Bot className="w-4 h-4 text-green-400" />
+                                </div>
+                                <div className="text-3xl font-mono font-bold text-green-400">
+                                    {t('profile.passiveIncomePerSecond', { amount: passiveIncome })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-sm border border-border bg-card p-6">
+                            <div className="flex items-center gap-2 mb-5">
+                                <BarChart3 className="w-5 h-5 text-primary" />
+                                <h2 className="text-xl font-bold">{t('profile.detailedStats')}</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="rounded-sm border border-border bg-background/40 p-4">
+                                    <div className="text-sm text-muted-foreground mb-2">
+                                        {t('profile.globalRank')}
+                                    </div>
+                                    <div className="text-2xl font-bold font-mono" data-testid="profile-rank">
+                                        {rank ? `#${rank}` : '#-'}
+                                    </div>
+                                </div>
+
+                                <div className="rounded-sm border border-border bg-background/40 p-4">
+                                    <div className="text-sm text-muted-foreground mb-2">
+                                        {t('profile.totalUpgradesPurchased')}
+                                    </div>
+                                    <div className="text-2xl font-bold font-mono" data-testid="profile-total-upgrades">
+                                        {totalUpgrades}
+                                    </div>
+                                </div>
+
+                                <div className="rounded-sm border border-border bg-background/40 p-4">
+                                    <div className="text-sm text-muted-foreground mb-2">
+                                        {t('profile.stats.clickPower')}
+                                    </div>
+                                    <div className="text-2xl font-bold font-mono text-primary">
+                                        {t('profile.clickPowerValue', { amount: clickPower })}
+                                    </div>
+                                </div>
+
+                                <div className="rounded-sm border border-border bg-background/40 p-4">
+                                    <div className="text-sm text-muted-foreground mb-2">
+                                        {t('profile.stats.passiveIncome')}
+                                    </div>
+                                    <div className="text-2xl font-bold font-mono text-green-400">
+                                        {t('profile.passiveIncomePerSecond', { amount: passiveIncome })}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <div className="stats-card" data-testid="profile-current-users">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <Users className="w-4 h-4" />
-                            <span>{t('profile.stats.currentUsers')}</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-glow">
-                            {formatNumber(profile?.current_users || 0)}
-                        </div>
-                    </div>
+                    <div className="space-y-6">
+                        <div className="rounded-sm border border-border bg-card p-6">
+                            <div className="flex items-center gap-2 mb-5">
+                                <Shield className="w-5 h-5 text-primary" />
+                                <h2 className="text-xl font-bold">{t('profile.accountPanel')}</h2>
+                            </div>
 
-                    <div className="stats-card" data-testid="profile-total-users">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <TrendingUp className="w-4 h-4" />
-                            <span>{t('profile.stats.totalGenerated')}</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold">
-                            {formatNumber(profile?.total_users_generated || 0)}
-                        </div>
-                    </div>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between gap-4 py-3 border-b border-border">
+                                    <span className="text-muted-foreground">{t('profile.memberSince')}</span>
+                                    <span className="font-medium text-right">{formatDate(createdAt)}</span>
+                                </div>
 
-                    <div className="stats-card" data-testid="profile-click-power">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <MousePointer className="w-4 h-4" />
-                            <span>{t('profile.stats.clickPower')}</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-primary">
-                            {t('profile.clickPowerValue', { amount: profile?.click_power || 1 })}
-                        </div>
-                    </div>
+                                <div className="flex items-center justify-between gap-4 py-3 border-b border-border">
+                                    <span className="text-muted-foreground">{t('profile.globalRank')}</span>
+                                    <span className="font-mono font-bold">{rank ? `#${rank}` : '#-'}</span>
+                                </div>
 
-                    <div className="stats-card" data-testid="profile-passive-income">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <Bot className="w-4 h-4" />
-                            <span>{t('profile.stats.passiveIncome')}</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-green-400">
-                            {t('profile.passiveIncomePerSecond', { amount: profile?.passive_income || 0 })}
-                        </div>
-                    </div>
-                </div>
+                                <div className="flex items-center justify-between gap-4 py-3 border-b border-border">
+                                    <span className="text-muted-foreground">{t('profile.totalUpgradesPurchased')}</span>
+                                    <span className="font-mono font-bold">{totalUpgrades}</span>
+                                </div>
 
-                <div className="stats-card">
-                    <h2 className="text-lg font-bold mb-4">{t('profile.accountDetails')}</h2>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between py-2 border-b border-border">
-                            <span className="text-muted-foreground flex items-center gap-2">
-                                <Trophy className="w-4 h-4" />
-                                {t('profile.globalRank')}
-                            </span>
-                            <span className="font-mono font-bold" data-testid="profile-rank">
-                                {profile?.rank ? `#${profile.rank}` : '#-'}
-                            </span>
+                                <div className="flex items-center justify-between gap-4 py-3">
+                                    <span className="text-muted-foreground">{t('profile.levelLabel')}</span>
+                                    <span className="font-mono font-bold">{level}</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="flex items-center justify-between py-2 border-b border-border">
-                            <span className="text-muted-foreground">
-                                {t('profile.totalUpgradesPurchased')}
-                            </span>
-                            <span className="font-mono font-bold" data-testid="profile-total-upgrades">
-                                {profile?.total_upgrades || 0}
-                            </span>
-                        </div>
+                        <div className="rounded-sm border border-destructive/30 bg-destructive/5 p-6">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Skull className="w-5 h-5 text-destructive" />
+                                <h2 className="text-xl font-bold text-destructive">
+                                    {t('profile.dangerZone')}
+                                </h2>
+                            </div>
 
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-muted-foreground flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                {t('profile.memberSince')}
-                            </span>
-                            <span className="font-medium" data-testid="profile-created-at">
-                                {formatDate(profile?.created_at)}
-                            </span>
+                            <p className="text-sm text-muted-foreground mb-5">
+                                {t('profile.delete.description')}
+                            </p>
+
+                            <Button
+                                variant="destructive"
+                                onClick={handleDeleteProfile}
+                                disabled={deleting}
+                                className="w-full rounded-sm"
+                                data-testid="profile-delete-btn"
+                            >
+                                {deleting ? (
+                                    <span className="flex items-center gap-2">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        {t('profile.delete.loading')}
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Skull className="w-4 h-4" />
+                                        {t('profile.delete.button')}
+                                        <ChevronRight className="w-4 h-4" />
+                                    </span>
+                                )}
+                            </Button>
                         </div>
                     </div>
                 </div>
