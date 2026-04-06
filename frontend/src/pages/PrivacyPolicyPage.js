@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
             La présente politique de confidentialité a pour objectif de vous
             informer de manière claire sur la manière dont vos données peuvent
             être collectées, utilisées, conservées et protégées lors de
-            l’utilisation du site et du jeu AI Startup Clicker.
+            l’utilisation du site et du jeu Ryvenox Empire.
           </p>
           <p className="text-zinc-300 leading-8">
             Nous accordons de l’importance à la protection de vos données

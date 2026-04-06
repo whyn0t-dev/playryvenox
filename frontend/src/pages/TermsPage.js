@@ -14,7 +14,7 @@ export default function TermsPage() {
           <p className="text-zinc-300 text-lg leading-8">
             Les présentes conditions générales d’utilisation ont pour objet de
             définir les modalités d’accès et d’utilisation du site et du jeu
-            AI Startup Clicker, ainsi que les droits et obligations des
+            Ryvenox Empire, ainsi que les droits et obligations des
             utilisateurs.
           </p>
           <p className="text-zinc-300 leading-8">
@@ -28,7 +28,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">1. Objet du service</h2>
           <p className="text-zinc-300 leading-8">
-            AI Startup Clicker est un jeu en ligne de type idle / clicker dans
+            Ryvenox Empire est un jeu en ligne de type idle / clicker dans
             lequel les utilisateurs développent une startup virtuelle, génèrent
             des utilisateurs, débloquent des améliorations, automatisent leur
             progression et peuvent comparer leurs performances via un
@@ -123,7 +123,7 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">5. Gameplay, équilibre et classement</h2>
           <p className="text-zinc-300 leading-8">
-            AI Startup Clicker repose sur des mécaniques de progression, de
+            Ryvenox Empire repose sur des mécaniques de progression, de
             génération de ressources, d’upgrades, d’automatisation et de
             compétition. L’éditeur se réserve le droit de modifier à tout
             moment les paramètres du jeu, les valeurs, les équilibrages, les

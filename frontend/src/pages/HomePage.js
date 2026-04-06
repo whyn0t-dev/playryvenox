@@ -296,12 +296,12 @@ export default function HomePage() {
                         </div>
 
                         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
-                            What makes this AI startup clicker game different?
+                            What makes this Ryvenox Empire game different?
                         </h2>
 
                         <div className="space-y-5 text-muted-foreground text-base sm:text-lg leading-8">
                             <p>
-                                This AI startup clicker game combines the fast satisfaction of an idle game with the long-term
+                                This Ryvenox Empire game combines the fast satisfaction of an idle game with the long-term
                                 strategy of a business growth simulator. Instead of clicking aimlessly, players build a digital
                                 company from the ground up, acquire users, unlock automation, and make smart upgrade decisions
                                 to create a scalable growth engine. The result is a browser game that feels simple at first,

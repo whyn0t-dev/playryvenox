@@ -9,10 +9,10 @@ export default function AboutPage() {
             À propos
           </p>
           <h1 className="text-4xl md:text-6xl font-bold">
-            À propos de AI Startup Clicker
+            À propos de Ryvenox Empire
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-8">
-            AI Startup Clicker est un jeu idle / clicker compétitif où vous
+            Ryvenox Empire est un jeu idle / clicker compétitif où vous
             partez de zéro pour bâtir une startup IA capable de conquérir des
             milliers, puis des millions d’utilisateurs. Chaque clic représente
             une décision, chaque amélioration accélère votre progression, et
@@ -24,7 +24,7 @@ export default function AboutPage() {
           <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
             <h2 className="text-2xl font-semibold mb-4">Notre vision</h2>
             <p className="text-gray-300 leading-8 mb-4">
-              Nous avons conçu AI Startup Clicker pour offrir une expérience
+              Nous avons conçu Ryvenox Empire pour offrir une expérience
               simple à comprendre, mais difficile à maîtriser. Le jeu repose sur
               une idée forte : transformer l’évolution d’une startup en boucle
               de progression ludique, satisfaisante et compétitive.
@@ -40,7 +40,7 @@ export default function AboutPage() {
           <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
             <h2 className="text-2xl font-semibold mb-4">Ce qui rend le jeu unique</h2>
             <p className="text-gray-300 leading-8 mb-4">
-              AI Startup Clicker mélange plusieurs sensations de jeu dans une
+              Ryvenox Empire mélange plusieurs sensations de jeu dans une
               seule expérience :
             </p>
             <ul className="space-y-3 text-gray-300 leading-8 list-disc pl-5">
@@ -91,7 +91,7 @@ export default function AboutPage() {
           <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
             <h3 className="text-xl font-semibold mb-3">Optimiser intelligemment</h3>
             <p className="text-gray-300 leading-7">
-              Derrière sa simplicité apparente, AI Startup Clicker récompense
+              Derrière sa simplicité apparente, Ryvenox Empire récompense
               les joueurs qui savent anticiper, comparer, investir au bon moment
               et tirer parti des mécaniques d’automatisation.
             </p>
@@ -128,7 +128,7 @@ export default function AboutPage() {
         <section className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800 space-y-5">
           <h2 className="text-3xl font-semibold">Notre ambition</h2>
           <p className="text-gray-300 leading-8">
-            Notre ambition est de faire évoluer AI Startup Clicker dans la durée
+            Notre ambition est de faire évoluer Ryvenox Empire dans la durée
             avec de nouvelles mécaniques, davantage d’upgrades, plus de profondeur
             stratégique, des équilibrages réguliers et un environnement
             compétitif toujours plus intéressant.

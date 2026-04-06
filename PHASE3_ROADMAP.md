@@ -1,4 +1,4 @@
-# AI Startup Clicker - Phase 3 Roadmap
+# Ryvenox Empire - Phase 3 Roadmap
 
 ## Overview
 Phase 3 focuses on long-term engagement features: Prestige system, Achievements, and Daily Bonuses.

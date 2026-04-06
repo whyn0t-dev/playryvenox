@@ -10,7 +10,7 @@ export default function HowToPlayPage() {
           </p>
           <h1 className="text-4xl md:text-6xl font-bold">Comment jouer</h1>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto leading-8">
-            Découvrez les bases d’AI Startup Clicker, apprenez à faire croître
+            Découvrez les bases d’Ryvenox Empire, apprenez à faire croître
             votre startup, à débloquer l’automatisation, à optimiser vos choix
             et à grimper dans le leaderboard mondial.
           </p>
@@ -19,7 +19,7 @@ export default function HowToPlayPage() {
         <section className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
           <h2 className="text-3xl font-semibold mb-6">Le principe général</h2>
           <p className="text-gray-300 leading-8 mb-4">
-            AI Startup Clicker est un jeu de progression où chaque action
+            Ryvenox Empire est un jeu de progression où chaque action
             participe au développement de votre entreprise. Vous démarrez avec
             peu de ressources et devez générer vos premiers utilisateurs grâce à
             vos clics.

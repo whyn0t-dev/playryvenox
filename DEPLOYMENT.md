@@ -1,4 +1,4 @@
-# AI Startup Clicker - Deployment Guide
+# Ryvenox Empire - Deployment Guide
 
 ## Prerequisites
 

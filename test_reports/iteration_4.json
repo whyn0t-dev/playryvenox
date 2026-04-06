@@ -1,5 +1,5 @@
 {
-  "summary": "Completed comprehensive testing of Daily Bonus feature for AI Startup Clicker. Backend APIs working correctly, frontend UI components functional with minor game state refresh delay.",
+  "summary": "Completed comprehensive testing of Daily Bonus feature for Ryvenox Empire. Backend APIs working correctly, frontend UI components functional with minor game state refresh delay.",
   "backend_issues": {
     "critical_bugs": [],
     "flaky_endpoints": [],

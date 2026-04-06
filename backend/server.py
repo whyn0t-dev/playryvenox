@@ -416,7 +416,7 @@ async def recalculate_player_stats(db: AsyncSession, user_id: str):
 # FASTAPI APP
 # ===========================================
 app = FastAPI(
-    title="AI Startup Clicker",
+    title="Ryvenox Empire",
     version="1.0.0",
     docs_url="/api/docs" if not IS_PRODUCTION else None,
     redoc_url="/api/redoc" if not IS_PRODUCTION else None,
@@ -978,7 +978,7 @@ async def health_check():
 @api_router.get("/")
 async def root():
     return {
-        "message": "AI Startup Clicker API",
+        "message": "Ryvenox Empire API",
         "version": "1.0.0",
         "database": "PostgreSQL/Supabase"
     }

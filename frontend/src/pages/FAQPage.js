@@ -3,8 +3,8 @@ import React from "react";
 export default function FAQPage() {
   const faqs = [
     {
-      q: "Qu’est-ce que AI Startup Clicker ?",
-      a: "AI Startup Clicker est un jeu idle / clicker compétitif dans lequel vous développez une startup IA. Vous cliquez pour acquérir des utilisateurs, débloquez des améliorations, automatisez votre progression et tentez de grimper dans le classement mondial.",
+      q: "Qu’est-ce que Ryvenox Empire ?",
+      a: "Ryvenox Empire est un jeu idle / clicker compétitif dans lequel vous développez une startup IA. Vous cliquez pour acquérir des utilisateurs, débloquez des améliorations, automatisez votre progression et tentez de grimper dans le classement mondial.",
     },
     {
       q: "Le jeu est-il gratuit ?",
@@ -47,7 +47,7 @@ export default function FAQPage() {
           <p className="text-lg text-gray-300 leading-8 max-w-3xl mx-auto">
             Retrouvez ici les réponses aux questions les plus courantes sur le
             fonctionnement du jeu, la progression, les comptes utilisateurs et
-            l’expérience générale sur AI Startup Clicker.
+            l’expérience générale sur Ryvenox Empire.
           </p>
         </header>
 

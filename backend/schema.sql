@@ -1,4 +1,4 @@
--- AI Startup Clicker - PostgreSQL Schema for Supabase
+-- Ryvenox Empire - PostgreSQL Schema for Supabase
 -- Run this in Supabase SQL Editor if you want to create tables manually
 
 -- Users table

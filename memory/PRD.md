@@ -1,7 +1,7 @@
-# AI Startup Clicker - Product Requirements Document
+# Ryvenox Empire - Product Requirements Document
 
 ## Original Problem Statement
-Create "AI Startup Clicker" - an idle/clicker web game where players:
+Create "Ryvenox Empire" - an idle/clicker web game where players:
 - Generate "Users" by clicking
 - Buy upgrades to improve click power and passive income
 - Compete on a global leaderboard based on total_users_generated

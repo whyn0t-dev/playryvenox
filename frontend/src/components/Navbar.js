@@ -35,7 +35,7 @@ export default function Navbar() {
                             <Zap className="w-5 h-5 text-primary" />
                         </div>
                         <span className="font-bold text-lg tracking-tight hidden sm:block">
-                            AI Startup Clicker
+                            Ryvenox Empire
                         </span>
                     </Link>
 

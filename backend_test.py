@@ -461,7 +461,7 @@ class AIStartupClickerTester:
         return False
 
 def main():
-    print("🚀 Starting AI Startup Clicker Backend Tests")
+    print("🚀 Starting Ryvenox Empire Backend Tests")
     print("=" * 50)
     
     tester = AIStartupClickerTester()

@@ -1,5 +1,5 @@
 {
-  "summary": "Completed comprehensive testing of AI Startup Clicker game - both backend APIs and frontend UI functionality tested successfully",
+  "summary": "Completed comprehensive testing of Ryvenox Empire game - both backend APIs and frontend UI functionality tested successfully",
   "backend_issues": {
     "critical_bugs": [],
     "flaky_endpoints": []

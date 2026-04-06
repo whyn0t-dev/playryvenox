@@ -21,7 +21,7 @@ export default function LegalNoticePage() {
           <h2 className="text-2xl font-semibold">1. Éditeur du site</h2>
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-3">
             <p className="text-zinc-300 leading-8">
-              <strong>Nom du site :</strong> AI Startup Clicker / Play Ryvenox
+              <strong>Nom du site :</strong> Ryvenox Empire / Play Ryvenox
             </p>
             <p className="text-zinc-300 leading-8">
               <strong>Nom ou raison sociale :</strong> [À compléter]
@@ -85,7 +85,7 @@ export default function LegalNoticePage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">4. Conception et développement</h2>
           <p className="text-zinc-300 leading-8">
-            Le site AI Startup Clicker / Play Ryvenox a été conçu et développé par :
+            Le site Ryvenox Empire / Play Ryvenox a été conçu et développé par :
             <strong> [À compléter]</strong>.
           </p>
           <p className="text-zinc-300 leading-8">
