@@ -11,6 +11,13 @@ import GamePage from "./pages/GamePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import AuthConfirmPage from "./pages/AuthPageConfirm";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import FAQPage from "./pages/FAQPage";
+import HowToPlay from "./pages/HowToPlay";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
+import LegalNoticePage from "./pages/LegalNoticePage";
 
 function App() {
   return (
@@ -26,6 +33,13 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/auth/confirm" element={<AuthConfirmPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/how-to-play" element={<HowToPlay />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/legal-notice" element={<LegalNoticePage />} />
 
               <Route
                 path="/game"

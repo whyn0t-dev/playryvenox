@@ -146,6 +146,27 @@ export default function Navbar() {
                                     >
                                         Profile
                                     </Link>
+                                    <Link
+                                        to="/about"
+                                        className={navLinkClass('/about')}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        About
+                                    </Link>
+                                    <Link
+                                        to="/contact"
+                                        className={navLinkClass('/contact')}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Contact
+                                    </Link>
+                                    <Link
+                                        to="/faq"
+                                        className={navLinkClass('/faq')}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        FAQ
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
                                         className="px-4 py-2 text-left text-destructive hover:bg-destructive/10"

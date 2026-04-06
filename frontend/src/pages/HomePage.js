@@ -62,7 +62,6 @@ export default function HomePage() {
         <div className="min-h-screen">
             {/* Hero Section */}
             <section className="relative py-20 lg:py-32 overflow-hidden border-b border-border">
-                {/* Background */}
                 <div
                     className="absolute inset-0 z-0"
                     style={{
@@ -76,7 +75,6 @@ export default function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-background" />
                 </div>
 
-                {/* Decorative glow */}
                 <div className="absolute inset-0 z-0 pointer-events-none">
                     <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-3xl rounded-full" />
                 </div>
@@ -101,7 +99,6 @@ export default function HomePage() {
                             and climb the leaderboard until your startup becomes unstoppable.
                         </p>
 
-                        {/* Social Proof Strip */}
                         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10">
                             <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
                                 <span className="text-foreground font-semibold">Fast to start</span> • addictive in seconds
@@ -149,7 +146,6 @@ export default function HomePage() {
                             )}
                         </div>
 
-                        {/* Hero Stats */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
                             <div className="stats-card text-left">
                                 <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
@@ -290,6 +286,132 @@ export default function HomePage() {
                 </div>
             </section>
 
+            {/* SEO Content Section */}
+            <section className="py-20 border-t border-border">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-5">
+                            <Star className="w-4 h-4 text-primary" />
+                            <span className="text-sm text-primary font-medium">Useful guide for players</span>
+                        </div>
+
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
+                            What makes this AI startup clicker game different?
+                        </h2>
+
+                        <div className="space-y-5 text-muted-foreground text-base sm:text-lg leading-8">
+                            <p>
+                                This AI startup clicker game combines the fast satisfaction of an idle game with the long-term
+                                strategy of a business growth simulator. Instead of clicking aimlessly, players build a digital
+                                company from the ground up, acquire users, unlock automation, and make smart upgrade decisions
+                                to create a scalable growth engine. The result is a browser game that feels simple at first,
+                                but becomes much deeper as your startup expands.
+                            </p>
+
+                            <p>
+                                Many incremental games focus only on bigger numbers. Here, progression is tied to a clearer
+                                fantasy: becoming the founder of a powerful AI empire. Every improvement has a purpose. More
+                                click power helps you grow faster in the early game, passive income rewards long-term planning,
+                                and the leaderboard adds a competitive layer that pushes players to refine their strategy.
+                                That balance between instant reward and optimization is what makes idle and clicker games so engaging.
+                            </p>
+
+                            <p>
+                                For new players, the appeal is obvious: you can start in seconds, understand the core loop
+                                immediately, and still discover better ways to progress over time. For experienced players,
+                                the game offers a familiar but more thematic progression system built around startup growth,
+                                automation, user acquisition, and scaling. If you enjoy incremental games, idle games,
+                                startup simulators, or online leaderboard competition, this experience gives you several
+                                reasons to keep coming back.
+                            </p>
+
+                            <p>
+                                The competitive element is also important. A live leaderboard transforms solo progression into
+                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
+                                efficient path to growth and overtaking other players. That sense of pressure gives each
+                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
+                                plan can make the difference between staying average and reaching the top founders.
+                                 The competitive element is also important. A live leaderboard transforms solo progression into
+                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
+                                efficient path to growth and overtaking other players. That sense of pressure gives each
+                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
+                                plan can make the difference between staying average and reaching the top founders.
+                                 The competitive element is also important. A live leaderboard transforms solo progression into
+                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
+                                efficient path to growth and overtaking other players. That sense of pressure gives each
+                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
+                                plan can make the difference between staying average and reaching the top founders. 
+                            </p>
+
+                            <p>
+                                Players who want to improve faster can explore the{' '}
+                                <Link to="/how-to-play" className="text-primary hover:underline font-medium">
+                                    how to play guide
+                                </Link>
+                                , read the{' '}
+                                <Link to="/faq" className="text-primary hover:underline font-medium">
+                                    frequently asked questions
+                                </Link>
+                                , or jump directly into the{' '}
+                                <Link to="/leaderboard" className="text-primary hover:underline font-medium">
+                                    global leaderboard
+                                </Link>
+                                . If you are ready to begin, you can{' '}
+                                <Link to="/register" className="text-primary hover:underline font-medium">
+                                    create an account for free
+                                </Link>
+                                {' '}and start building immediately.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Beginner Strategy Section */}
+            <section className="py-20 border-t border-border">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-5xl mx-auto">
+                        <div className="text-center mb-12">
+                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+                                Beginner tips to grow faster
+                            </h2>
+                            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                                A few smart decisions early on can accelerate your progress and help you climb the rankings much faster.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="stats-card">
+                                <h3 className="text-xl font-semibold mb-3">1. Build momentum early</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    In the beginning, active clicking matters a lot. Your first objective is to generate
+                                    enough users quickly to unlock the first meaningful upgrades. A strong early start
+                                    makes the mid-game smoother and gives you access to better scaling tools sooner.
+                                </p>
+                            </div>
+
+                            <div className="stats-card">
+                                <h3 className="text-xl font-semibold mb-3">2. Balance clicks and automation</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    Do not focus only on raw click strength. Passive income and automation are what allow
+                                    your startup to keep growing over time. The best strategy is usually a balanced one:
+                                    enough manual power to progress now, and enough automation to scale later.
+                                </p>
+                            </div>
+
+                            <div className="stats-card">
+                                <h3 className="text-xl font-semibold mb-3">3. Watch the leaderboard</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    The leaderboard is more than a vanity feature. It shows what is possible and gives you
+                                    a concrete target. Competing against stronger players can help you stay motivated,
+                                    refine your approach, and push for more efficient growth paths.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Leaderboard Preview */}
             <section className="py-20 border-t border-border">
                 <div className="container mx-auto px-4">
@@ -392,6 +514,69 @@ export default function HomePage() {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            {/* FAQ SEO Section */}
+            {/* FAQ SEO Section */}
+            <section className="py-20 border-t border-border">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="text-center mb-12">
+                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+                                Frequently asked questions
+                            </h2>
+                            <p className="text-muted-foreground text-lg">
+                                Quick answers for new players who want to understand the game faster.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="stats-card">
+                                <h3 className="text-lg font-semibold mb-2">Is this AI clicker game free to play?</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    Yes. New players can create an account and start building their startup for free.
+                                    The core gameplay loop is designed to be accessible immediately, with progression
+                                    based on smart decisions, active play, and automation upgrades.
+                                </p>
+                            </div>
+
+                            <div className="stats-card">
+                                <h3 className="text-lg font-semibold mb-2">How do I progress faster?</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    The fastest way to improve is to combine strong early clicking with efficient upgrade
+                                    timing. Focus on building momentum first, then invest in systems that continue
+                                    generating users passively. Players who balance manual growth and automation
+                                    usually scale better in the long run.
+                                </p>
+                            </div>
+
+                            <div className="stats-card">
+                                <h3 className="text-lg font-semibold mb-2">What is the goal of the game?</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    Your goal is to grow from a tiny startup into a dominant AI empire. That means
+                                    generating more users, unlocking stronger upgrades, improving your production,
+                                    and climbing the leaderboard ahead of other players.
+                                </p>
+                            </div>
+
+                            <div className="stats-card">
+                                <h3 className="text-lg font-semibold mb-2">Where can I learn the full rules?</h3>
+                                <p className="text-muted-foreground leading-7">
+                                    You can visit the{' '}
+                                    <Link to="/how-to-play" className="text-primary hover:underline font-medium">
+                                        How To Play
+                                    </Link>
+                                    {' '}page for a more complete explanation of the gameplay systems, progression flow,
+                                    and strategic advice. You can also browse the{' '}
+                                    <Link to="/faq" className="text-primary hover:underline font-medium">
+                                        FAQ
+                                    </Link>
+                                    {' '}page for additional help.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
