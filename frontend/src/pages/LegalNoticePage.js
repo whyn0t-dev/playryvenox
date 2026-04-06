@@ -21,33 +21,34 @@ export default function LegalNoticePage() {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">{t("sections.editor.title")}</h2>
+
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-3">
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.siteName")}</strong> {t("sections.editor.siteNameValue")}
+              <strong>{t("sections.editor.siteName")}</strong> Ryvenox Empire / Play Ryvenox
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.companyName")}</strong> {t("sections.editor.companyNameValue")}
+              <strong>{t("sections.editor.companyName")}</strong> Weblax Studio
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.legalStatus")}</strong> {t("sections.editor.legalStatusValue")}
+              <strong>{t("sections.editor.legalStatus")}</strong> Entreprise Individuelle
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.publisher")}</strong> {t("sections.editor.publisherValue")}
+              <strong>{t("sections.editor.publisher")}</strong> Weblax Studio
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.email")}</strong> {t("sections.editor.emailValue")}
+              <strong>{t("sections.editor.email")}</strong> contact@playryvenox.com
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.address")}</strong> {t("sections.editor.addressValue")}
+              <strong>{t("sections.editor.address")}</strong> 551, boulevard Maillet, 11776 Rocheboeuf
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.phone")}</strong> {t("sections.editor.phoneValue")}
+              <strong>{t("sections.editor.phone")}</strong> 06 85 80 20 16
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.siret")}</strong> {t("sections.editor.siretValue")}
+              <strong>{t("sections.editor.siret")}</strong> 181 223 983 00253
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.editor.vat")}</strong> {t("sections.editor.vatValue")}
+              <strong>{t("sections.editor.vat")}</strong> FR 40 123456824
             </p>
           </div>
         </section>
@@ -56,19 +57,19 @@ export default function LegalNoticePage() {
           <h2 className="text-2xl font-semibold">{t("sections.hosting.title")}</h2>
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-3">
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.hosting.host")}</strong> {t("sections.hosting.hostValue")}
+              <strong>{t("sections.hosting.host")}</strong>{" "}Infomaniak
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.hosting.company")}</strong> {t("sections.hosting.companyValue")}
+              <strong>{t("sections.hosting.company")}</strong>{" "}Infomaniak Network SA
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.hosting.address")}</strong> {t("sections.hosting.addressValue")}
+              <strong>{t("sections.hosting.address")}</strong>{" "}26, avenue de la Praille, 1227 Carouge, Suisse
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.hosting.website")}</strong> {t("sections.hosting.websiteValue")}
+              <strong>{t("sections.hosting.website")}</strong>{" "}https://www.infomaniak.com
             </p>
             <p className="text-zinc-300 leading-8">
-              <strong>{t("sections.hosting.phone")}</strong> {t("sections.hosting.phoneValue")}
+              <strong>{t("sections.hosting.phone")}</strong>{" "}+41 22 820 35 00
             </p>
           </div>
         </section>
@@ -79,11 +80,11 @@ export default function LegalNoticePage() {
           </h2>
           <p className="text-zinc-300 leading-8">
             {t("sections.publicationDirector.paragraph1")}{" "}
-            <strong>{t("sections.publicationDirector.paragraph1Strong")}</strong>.
+            <strong>Ryvenox</strong>.
           </p>
           <p className="text-zinc-300 leading-8">
             {t("sections.publicationDirector.paragraph2")}{" "}
-            <strong>{t("sections.publicationDirector.paragraph2Strong")}</strong>.
+            <strong>Weblax Studio</strong>.
           </p>
         </section>
 
@@ -91,7 +92,7 @@ export default function LegalNoticePage() {
           <h2 className="text-2xl font-semibold">{t("sections.development.title")}</h2>
           <p className="text-zinc-300 leading-8">
             {t("sections.development.paragraph1")}{" "}
-            <strong>{t("sections.development.paragraph1Strong")}</strong>.
+            <strong>Ryvenox's Studio</strong>.
           </p>
           <p className="text-zinc-300 leading-8">
             {t("sections.development.paragraph2")}
@@ -176,19 +177,8 @@ export default function LegalNoticePage() {
           <h2 className="text-2xl font-semibold">{t("sections.contact.title")}</h2>
           <p className="text-zinc-300 leading-8">
             {t("sections.contact.paragraph1")}{" "}
-            <strong>{t("sections.contact.paragraph1Strong")}</strong>.
+            <strong>contact@playryvenox.com</strong>.
           </p>
-        </section>
-
-        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 space-y-3">
-          <h2 className="text-xl font-semibold text-amber-300">
-            {t("warning.title")}
-          </h2>
-          <ul className="list-disc pl-6 text-zinc-200 space-y-2 leading-7">
-            {t("warning.items", { returnObjects: true }).map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
         </section>
       </div>
     </div>
