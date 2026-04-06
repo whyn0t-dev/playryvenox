@@ -69,3 +69,24 @@ class PlayerUpgrade(Base):
     __table_args__ = (
         Index('idx_player_upgrade_user_upgrade', 'user_id', 'upgrade_id', unique=True),
     )
+
+class UserTransfer(Base):
+    __tablename__ = 'user_transfers'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sender_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    recipient_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+
+    amount_sent = Column(Float, nullable=False)
+    fee_amount = Column(Float, default=0, nullable=False)
+    amount_received = Column(Float, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    sender = relationship('User', foreign_keys=[sender_id], backref='sent_transfers')
+    recipient = relationship('User', foreign_keys=[recipient_id], backref='received_transfers')
+
+    __table_args__ = (
+        Index('idx_user_transfers_sender_created', 'sender_id', 'created_at'),
+        Index('idx_user_transfers_recipient_created', 'recipient_id', 'created_at'),
+    )

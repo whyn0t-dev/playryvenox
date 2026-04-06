@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Users, Zap, TrendingUp, ShoppingCart, MousePointer, Bot, Loader2, Sparkles, ChevronUp } from 'lucide-react';
+import { Users, Zap, TrendingUp, ShoppingCart, MousePointer, Bot, Loader2, Sparkles, ChevronUp, SendHorizontal } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { formatApiErrorDetail } from '../contexts/AuthContext';
@@ -21,14 +21,15 @@ export default function GamePage() {
     const clickerRef = useRef(null);
     const lastClickTime = useRef(0);
     const hasShownOfflineToast = useRef(false);
+    const [transferRecipient, setTransferRecipient] = useState('');
+    const [transferAmount, setTransferAmount] = useState('');
+    const [transferring, setTransferring] = useState(false);
+    const [transferStatus, setTransferStatus] = useState(null);
 
     const getAuthHeaders = async () => {
         const {
             data: { session },
         } = await supabase.auth.getSession();
-
-        console.log("SESSION?", session);
-        console.log("ACCESS TOKEN PREFIX:", session?.access_token?.slice(0, 20));
 
         if (!session?.access_token) {
             throw new Error("No active session");
@@ -75,13 +76,27 @@ export default function GamePage() {
         }
     }, []);
 
+    const fetchTransferStatus = useCallback(async () => {
+        try {
+            const headers = await getAuthHeaders();
+            const response = await axios.get(`${API}/transfer/status`, { headers });
+            setTransferStatus(response.data);
+        } catch (error) {
+            console.error("Failed to fetch transfer status");
+        }
+    }, []);
+
     useEffect(() => {
         fetchGameState(true);
+        fetchTransferStatus();
 
-        // Refresh game state periodically for passive income
-        const interval = setInterval(() => fetchGameState(false), 5000);
+        const interval = setInterval(() => {
+            fetchGameState(false);
+            fetchTransferStatus();
+        }, 5000);
+
         return () => clearInterval(interval);
-    }, [fetchGameState]);
+    }, [fetchGameState, fetchTransferStatus]);
 
     const handleClick = async (e) => {
         // Throttle clicks to prevent spam
@@ -155,6 +170,7 @@ export default function GamePage() {
                     </div>
                 );
                 await fetchGameState(false);
+                await fetchTransferStatus();
             }
         } catch (error) {
             const message = formatApiErrorDetail(error.response?.data?.detail) || 'Failed to buy upgrade';
@@ -179,8 +195,67 @@ export default function GamePage() {
     const passiveUpgrades = gameState?.upgrades?.filter(u => u.type === 'passive') || [];
 
     // Callback when daily bonus is claimed
-    const handleDailyClaim = (reward) => {
+    const handleDailyClaim = () => {
         fetchGameState(false);
+        fetchTransferStatus();
+    };
+
+    const handleTransferUsers = async () => {
+        const recipient = transferRecipient.trim();
+        const amount = Number(transferAmount);
+
+        if (!recipient) {
+            toast.error('Veuillez saisir un username destinataire');
+            return;
+        }
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            toast.error('Veuillez saisir un montant valide');
+            return;
+        }
+
+        if ((gameState?.current_users || 0) < amount) {
+            toast.error("Vous n'avez pas assez de users");
+            return;
+        }
+
+        setTransferring(true);
+
+        try {
+            const headers = await getAuthHeaders();
+
+            const response = await axios.post(
+                `${API}/transfer/send`,
+                {
+                    recipient_username: recipient,
+                    amount
+                },
+                { headers }
+            );
+
+            toast.success(
+                <div className="flex items-center gap-2">
+                    <SendHorizontal className="w-4 h-4 text-primary" />
+                    <span>
+                        <strong>{formatNumber(response.data.amount_sent)}</strong> users envoyés à{' '}
+                        <strong>{response.data.recipient_username}</strong>{' '}
+                        ({formatNumber(response.data.amount_received)} reçus après frais)
+                    </span>
+                </div>
+            );
+
+            setTransferRecipient('');
+            setTransferAmount('');
+            await fetchGameState(false);
+            await fetchTransferStatus();
+        } catch (error) {
+            const message =
+                formatApiErrorDetail(error.response?.data?.detail) ||
+                'Échec du transfert';
+            toast.error(message);
+        } finally {
+            setTransferring(false);
+        }
     };
 
     return (
@@ -234,6 +309,95 @@ export default function GamePage() {
                         <div className="text-xl sm:text-2xl lg:text-3xl counter-display text-glow-success" style={{ color: 'hsl(142, 76%, 55%)' }}>
                             +{gameState?.passive_income || 0}/s
                         </div>
+                    </div>
+                </div>
+
+                {/* Transfer Users Panel */}
+                <div className="stats-card mb-4 sm:mb-6 fade-in stagger-1">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                            <SendHorizontal className="w-5 h-5 text-primary" />
+                            Transfer Users
+                        </h2>
+                        <span className="text-xs text-muted-foreground">
+                            Balance: {formatNumber(gameState?.current_users || 0)} users
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">
+                                Recipient username
+                            </label>
+                            <input
+                                type="text"
+                                value={transferRecipient}
+                                onChange={(e) => setTransferRecipient(e.target.value)}
+                                placeholder="ex: player123"
+                                className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                data-testid="transfer-recipient-input"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">
+                                Amount
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                step="0.01"
+                                value={transferAmount}
+                                onChange={(e) => setTransferAmount(e.target.value)}
+                                placeholder="100"
+                                className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                data-testid="transfer-amount-input"
+                            />
+                        </div>
+
+                        <div className="flex items-end">
+                            <Button
+                                onClick={handleTransferUsers}
+                                disabled={
+                                    transferring ||
+                                    !transferStatus ||
+                                    !transferStatus.can_send
+                                }
+                                className="w-full h-10 font-bold"
+                                data-testid="transfer-users-btn"
+                            >
+                                {transferring ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <SendHorizontal className="w-4 h-4 mr-2" />
+                                        Transfer
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        {transferStatus && (
+                            <>
+                                <div>
+                                    Niveau requis : {transferStatus.min_level_required}
+                                </div>
+                                <div>
+                                    Frais : {transferStatus.fee_percent}%
+                                </div>
+                                <div>
+                                    Limite restante : {formatNumber(transferStatus.remaining_in_window)} / {formatNumber(transferStatus.window_limit)} users
+                                </div>
+                            </>
+                        )}
+
+                        {transferStatus && !transferStatus.can_send && (
+                            <div className="text-red-400">
+                                Vous devez être niveau {transferStatus.min_level_required} pour envoyer des users.
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -361,7 +525,7 @@ export default function GamePage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

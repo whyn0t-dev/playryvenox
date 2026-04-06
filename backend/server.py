@@ -9,7 +9,8 @@ from starlette.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, Column, String, Float, Integer, DateTime, ForeignKey, Index
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
@@ -20,7 +21,7 @@ from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from typing import List, Optional
 
 from database import get_db, engine, Base, AsyncSessionLocal
-from models import User, PlayerStats, Upgrade, PlayerUpgrade
+from models import User, PlayerStats, Upgrade, PlayerUpgrade, UserTransfer
 
 from supabase import create_client, Client
 
@@ -209,6 +210,29 @@ class BuyUpgradeRequest(BaseModel):
         if not re.match(r"^[a-z_]+$", v):
             raise ValueError("Invalid upgrade ID format")
         return v
+    
+class TransferUsersRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    recipient_username: str
+    amount: float
+
+    @field_validator("recipient_username")
+    @classmethod
+    def validate_recipient_username(cls, v):
+        valid, msg = validate_username(v)
+        if not valid:
+            raise ValueError(msg)
+        return v
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be greater than 0")
+        if v > 1000:
+            raise ValueError("Maximum transfer is 1000")
+        return round(v, 2)
 
 # ===========================================
 # GAME CONSTANTS
@@ -227,6 +251,14 @@ INITIAL_UPGRADES = [
 ]
 
 VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
+
+# ===========================================
+# TRANSFER CONSTANTS
+# ===========================================
+TRANSFER_MAX_AMOUNT = 1000
+TRANSFER_WINDOW_DAYS = 5
+TRANSFER_FEE_PERCENT = 0.10  # 10%
+TRANSFER_MIN_LEVEL = 3
 
 def calculate_upgrade_cost(base_cost: float, level: int) -> float:
     return round(base_cost * (1.65 ** level), 2)
@@ -421,6 +453,7 @@ api_router = APIRouter(prefix="/api")
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 game_router = APIRouter(prefix="/game", tags=["game"])
 daily_router = APIRouter(prefix="/daily", tags=["daily"])
+transfer_router = APIRouter(prefix="/transfer", tags=["transfer"])
 
 # ===========================================
 # AUTH ROUTES
@@ -759,6 +792,181 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
     }
 
 # ===========================================
+# TRANSFER ROUTES
+# ===========================================
+@transfer_router.get("/status")
+async def get_transfer_status(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    now = datetime.now(timezone.utc)
+    window_start = now - timedelta(days=TRANSFER_WINDOW_DAYS)
+
+    result = await db.execute(
+        select(func.coalesce(func.sum(UserTransfer.amount_sent), 0.0)).where(
+            UserTransfer.sender_id == user.id,
+            UserTransfer.created_at >= window_start
+        )
+    )
+    sent_in_window = float(result.scalar() or 0.0)
+    remaining = max(0.0, TRANSFER_MAX_AMOUNT - sent_in_window)
+
+    stats = await get_or_create_player_stats(db, user.id)
+    stats, _ = await recalculate_passive_income(db, stats)
+
+    return {
+        "enabled": True,
+        "min_level_required": TRANSFER_MIN_LEVEL,
+        "current_level": stats.level,
+        "can_send": stats.level >= TRANSFER_MIN_LEVEL,
+        "window_days": TRANSFER_WINDOW_DAYS,
+        "window_limit": TRANSFER_MAX_AMOUNT,
+        "sent_in_window": round(sent_in_window, 2),
+        "remaining_in_window": round(remaining, 2),
+        "fee_percent": int(TRANSFER_FEE_PERCENT * 100)
+    }
+
+
+@transfer_router.post("/send")
+@limiter.limit("20/day")
+async def send_users(
+    request: Request,
+    data: TransferUsersRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    sender_stats = await get_or_create_player_stats(db, user.id)
+    sender_stats, _ = await recalculate_passive_income(db, sender_stats)
+
+    if sender_stats.level < TRANSFER_MIN_LEVEL:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You must be at least level {TRANSFER_MIN_LEVEL} to send Users"
+        )
+
+    recipient_result = await db.execute(
+        select(User).where(User.username == data.recipient_username)
+    )
+    recipient = recipient_result.scalar_one_or_none()
+
+    if not recipient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recipient not found"
+        )
+
+    if recipient.id == user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot send Users to yourself"
+        )
+
+    now = datetime.now(timezone.utc)
+    window_start = now - timedelta(days=TRANSFER_WINDOW_DAYS)
+
+    sent_result = await db.execute(
+        select(func.coalesce(func.sum(UserTransfer.amount_sent), 0.0)).where(
+            UserTransfer.sender_id == user.id,
+            UserTransfer.created_at >= window_start
+        )
+    )
+    total_sent_in_window = float(sent_result.scalar() or 0.0)
+
+    if total_sent_in_window + data.amount > TRANSFER_MAX_AMOUNT:
+        remaining = max(0.0, TRANSFER_MAX_AMOUNT - total_sent_in_window)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Transfer limit exceeded. You can still send {remaining:.2f} Users in the current {TRANSFER_WINDOW_DAYS}-day window."
+        )
+
+    if sender_stats.current_users < data.amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Not enough Users. Have {sender_stats.current_users:.2f}, need {data.amount:.2f}"
+        )
+
+    recipient_stats = await get_or_create_player_stats(db, recipient.id)
+    recipient_stats, _ = await recalculate_passive_income(db, recipient_stats)
+
+    fee_amount = round(data.amount * TRANSFER_FEE_PERCENT, 2)
+    amount_received = round(data.amount - fee_amount, 2)
+
+    sender_stats.current_users -= data.amount
+    recipient_stats.current_users += amount_received
+
+    transfer = UserTransfer(
+        sender_id=user.id,
+        recipient_id=recipient.id,
+        amount_sent=data.amount,
+        fee_amount=fee_amount,
+        amount_received=amount_received
+    )
+    db.add(transfer)
+
+    await db.commit()
+    await db.refresh(sender_stats)
+    await db.refresh(recipient_stats)
+
+    new_remaining = max(0.0, TRANSFER_MAX_AMOUNT - (total_sent_in_window + data.amount))
+
+    return {
+        "success": True,
+        "recipient_username": recipient.username,
+        "amount_sent": round(data.amount, 2),
+        "fee_amount": fee_amount,
+        "amount_received": amount_received,
+        "sender_current_users": round(sender_stats.current_users, 2),
+        "recipient_current_users": round(recipient_stats.current_users, 2),
+        "window_limit": TRANSFER_MAX_AMOUNT,
+        "window_days": TRANSFER_WINDOW_DAYS,
+        "remaining_in_window": round(new_remaining, 2)
+    }
+
+
+@transfer_router.get("/history")
+async def get_transfer_history(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    sent_result = await db.execute(
+        select(UserTransfer, User.username)
+        .join(User, User.id == UserTransfer.recipient_id)
+        .where(UserTransfer.sender_id == user.id)
+        .order_by(UserTransfer.created_at.desc())
+        .limit(20)
+    )
+    sent_rows = sent_result.all()
+
+    received_result = await db.execute(
+        select(UserTransfer, User.username)
+        .join(User, User.id == UserTransfer.sender_id)
+        .where(UserTransfer.recipient_id == user.id)
+        .order_by(UserTransfer.created_at.desc())
+        .limit(20)
+    )
+    received_rows = received_result.all()
+
+    return {
+        "sent": [
+            {
+                "to_username": username,
+                "amount_sent": round(transfer.amount_sent, 2),
+                "fee_amount": round(transfer.fee_amount, 2),
+                "amount_received": round(transfer.amount_received, 2),
+                "created_at": transfer.created_at.isoformat()
+            }
+            for transfer, username in sent_rows
+        ],
+        "received": [
+            {
+                "from_username": username,
+                "amount_sent": round(transfer.amount_sent, 2),
+                "fee_amount": round(transfer.fee_amount, 2),
+                "amount_received": round(transfer.amount_received, 2),
+                "created_at": transfer.created_at.isoformat()
+            }
+            for transfer, username in received_rows
+        ]
+    }
+
+# ===========================================
 # INCLUDE ROUTERS & MIDDLEWARE
 # ===========================================
 # Health check
@@ -778,6 +986,7 @@ async def root():
 api_router.include_router(auth_router)
 api_router.include_router(game_router)
 api_router.include_router(daily_router)
+api_router.include_router(transfer_router)
 app.include_router(api_router)
 
 # ===========================================
