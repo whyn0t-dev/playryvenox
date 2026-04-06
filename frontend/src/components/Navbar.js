@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
-import { Zap, Trophy, User, LogOut, Menu, X } from "lucide-react";
+import { Zap, Trophy, User, LogOut, Menu, X, Languages } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,12 +10,21 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const currentLanguage = i18n.language?.startsWith("fr") ? "fr" : "en";
 
   const handleLogout = async () => {
     await logout();
     setMobileMenuOpen(false);
     navigate("/");
+  };
+
+  const toggleLanguage = async () => {
+    const newLanguage = currentLanguage === "fr" ? "en" : "fr";
+    await i18n.changeLanguage(newLanguage);
+    localStorage.setItem("i18nextLng", newLanguage);
+    setMobileMenuOpen(false);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -84,6 +93,18 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleLanguage}
+              className="rounded-sm"
+              data-testid="nav-language-btn"
+              aria-label={currentLanguage === "fr" ? "Passer en anglais" : "Switch to French"}
+            >
+              <Languages className="w-4 h-4 mr-1" />
+              {currentLanguage === "fr" ? "EN" : "FR"}
+            </Button>
+
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-muted-foreground mr-2">
@@ -142,6 +163,17 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border" data-testid="mobile-menu">
             <div className="flex flex-col gap-2">
+              <button
+                onClick={toggleLanguage}
+                className="px-4 py-2 text-left text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                data-testid="mobile-language-btn"
+              >
+                <span className="flex items-center gap-2">
+                  <Languages className="w-4 h-4" />
+                  {currentLanguage === "fr" ? "Switch to English" : "Passer en français"}
+                </span>
+              </button>
+
               {isAuthenticated ? (
                 <>
                   <Link

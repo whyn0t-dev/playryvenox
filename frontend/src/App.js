@@ -1,5 +1,5 @@
 import "@/App.css";
-import "@/i18n"; // 🔥 IMPORTANT
+import "@/i18n";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -19,18 +19,9 @@ import HowToPlay from "./pages/HowToPlay";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import LegalNoticePage from "./pages/LegalNoticePage";
-import Footer from "components/Footer";
-
-import { useEffect } from "react";
-import i18n from "i18next";
+import Footer from "./components/Footer";
 
 function App() {
-
-  useEffect(() => {
-    // exemple : forcer FR par défaut
-    i18n.changeLanguage("fr");
-  }, []);
-
   return (
     <AuthProvider>
       <div className="App min-h-screen bg-background text-foreground">

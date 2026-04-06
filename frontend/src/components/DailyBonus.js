@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Gift, Clock, Flame, Sparkles, X, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { supabase } from '../lib/supabase';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function DailyBonus({ onClaim }) {
+    const { t } = useTranslation();
+
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [claiming, setClaiming] = useState(false);
@@ -20,7 +23,7 @@ export default function DailyBonus({ onClaim }) {
         } = await supabase.auth.getSession();
 
         if (!session?.access_token) {
-            throw new Error('No active session');
+            throw new Error(t('dailyBonus.session.noActive'));
         }
 
         return {
@@ -74,8 +77,14 @@ export default function DailyBonus({ onClaim }) {
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-yellow-400" />
                         <div>
-                            <div className="font-bold">Daily Bonus Claimed!</div>
-                            <div className="text-sm opacity-80">+{response.data.reward.toLocaleString()} users</div>
+                            <div className="font-bold">
+                                {t('dailyBonus.toast.claimedTitle')}
+                            </div>
+                            <div className="text-sm opacity-80">
+                                {t('dailyBonus.toast.claimedReward', {
+                                    reward: response.data.reward.toLocaleString(),
+                                })}
+                            </div>
                         </div>
                     </div>,
                     { duration: 4000 }
@@ -89,7 +98,8 @@ export default function DailyBonus({ onClaim }) {
                 }
             }
         } catch (error) {
-            const message = error.response?.data?.detail || 'Failed to claim bonus';
+            const message =
+                error.response?.data?.detail || t('dailyBonus.errors.claimFailed');
             toast.error(message);
         } finally {
             setClaiming(false);
@@ -102,9 +112,13 @@ export default function DailyBonus({ onClaim }) {
         const secs = seconds % 60;
 
         if (hours > 0) {
-            return `${hours}h ${minutes}m`;
+            return t('dailyBonus.time.hoursMinutes', { hours, minutes });
         }
-        return `${minutes}m ${secs}s`;
+
+        return t('dailyBonus.time.minutesSeconds', {
+            minutes,
+            seconds: secs,
+        });
     };
 
     if (loading) return null;
@@ -124,7 +138,7 @@ export default function DailyBonus({ onClaim }) {
             >
                 <Gift className={`w-5 h-5 ${status?.available ? 'animate-bounce' : ''}`} />
                 <span className="font-medium text-sm">
-                    {status?.available ? 'Claim!' : formatTime(countdown)}
+                    {status?.available ? t('dailyBonus.button.claim') : formatTime(countdown)}
                 </span>
                 {status?.available && (
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping" />
@@ -137,7 +151,10 @@ export default function DailyBonus({ onClaim }) {
                     data-testid="daily-bonus-modal"
                     onClick={() => setShowModal(false)}
                 >
-                    <div className="relative w-full max-w-md bg-card border border-border rounded-sm p-6 slide-in-right" onClick={e => e.stopPropagation()}>
+                    <div
+                        className="relative w-full max-w-md bg-card border border-border rounded-sm p-6 slide-in-right"
+                        onClick={e => e.stopPropagation()}
+                    >
                         <button
                             onClick={() => setShowModal(false)}
                             className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10 p-1"
@@ -147,16 +164,24 @@ export default function DailyBonus({ onClaim }) {
                         </button>
 
                         <div className="text-center mb-6">
-                            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
-                                status?.available
-                                    ? 'bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-500/50'
-                                    : 'bg-muted border border-border'
-                            }`}>
-                                <Gift className={`w-8 h-8 ${status?.available ? 'text-yellow-400' : 'text-muted-foreground'}`} />
+                            <div
+                                className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                                    status?.available
+                                        ? 'bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-500/50'
+                                        : 'bg-muted border border-border'
+                                }`}
+                            >
+                                <Gift
+                                    className={`w-8 h-8 ${
+                                        status?.available ? 'text-yellow-400' : 'text-muted-foreground'
+                                    }`}
+                                />
                             </div>
-                            <h2 className="text-2xl font-bold">Daily Bonus</h2>
+                            <h2 className="text-2xl font-bold">
+                                {t('dailyBonus.modal.title')}
+                            </h2>
                             <p className="text-muted-foreground text-sm mt-1">
-                                Come back every day for bigger rewards!
+                                {t('dailyBonus.modal.subtitle')}
                             </p>
                         </div>
 
@@ -164,15 +189,20 @@ export default function DailyBonus({ onClaim }) {
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm text-muted-foreground flex items-center gap-1">
                                     <Flame className="w-4 h-4 text-orange-400" />
-                                    Streak
+                                    {t('dailyBonus.streak')}
                                 </span>
                                 <span className="text-sm font-mono">
-                                    Day {status?.available ? status?.next_streak : status?.current_streak} / {status?.max_streak}
+                                    {t('dailyBonus.dayProgress', {
+                                        current: status?.available
+                                            ? status?.next_streak
+                                            : status?.current_streak,
+                                        max: status?.max_streak,
+                                    })}
                                 </span>
                             </div>
 
                             <div className="flex gap-1">
-                                {streakDays.map((day) => {
+                                {streakDays.map(day => {
                                     const isCompleted = day <= (status?.current_streak || 0);
                                     const isNext = day === (status?.next_streak || 1) && status?.available;
                                     const isCurrent = day === (status?.current_streak || 0) && !status?.available;
@@ -195,21 +225,31 @@ export default function DailyBonus({ onClaim }) {
                             </div>
                         </div>
 
-                        <div className={`p-4 rounded-sm mb-6 ${
-                            status?.available
-                                ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30'
-                                : 'bg-muted/50 border border-border'
-                        }`}>
+                        <div
+                            className={`p-4 rounded-sm mb-6 ${
+                                status?.available
+                                    ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30'
+                                    : 'bg-muted/50 border border-border'
+                            }`}
+                        >
                             <div className="text-center">
                                 <div className="text-sm text-muted-foreground mb-1">
-                                    {status?.available ? "Today's Reward" : 'Next Reward'}
+                                    {status?.available
+                                        ? t('dailyBonus.reward.today')
+                                        : t('dailyBonus.reward.next')}
                                 </div>
-                                <div className={`text-3xl font-bold font-mono ${
-                                    status?.available ? 'text-yellow-400 text-glow-gold' : 'text-foreground'
-                                }`}>
+                                <div
+                                    className={`text-3xl font-bold font-mono ${
+                                        status?.available
+                                            ? 'text-yellow-400 text-glow-gold'
+                                            : 'text-foreground'
+                                    }`}
+                                >
                                     +{(status?.next_reward || 0).toLocaleString()}
                                 </div>
-                                <div className="text-sm text-muted-foreground">users</div>
+                                <div className="text-sm text-muted-foreground">
+                                    {t('dailyBonus.users')}
+                                </div>
                             </div>
                         </div>
 
@@ -223,12 +263,12 @@ export default function DailyBonus({ onClaim }) {
                                 {claiming ? (
                                     <span className="flex items-center gap-2">
                                         <Sparkles className="w-5 h-5 animate-spin" />
-                                        Claiming...
+                                        {t('dailyBonus.claiming')}
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
                                         <Gift className="w-5 h-5" />
-                                        Claim Bonus
+                                        {t('dailyBonus.claimButton')}
                                         <ChevronRight className="w-5 h-5" />
                                     </span>
                                 )}
@@ -237,7 +277,7 @@ export default function DailyBonus({ onClaim }) {
                             <div className="text-center">
                                 <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                                     <Clock className="w-5 h-5" />
-                                    <span>Next bonus available in</span>
+                                    <span>{t('dailyBonus.nextAvailableIn')}</span>
                                 </div>
                                 <div className="text-2xl font-mono font-bold text-foreground">
                                     {formatTime(countdown)}
@@ -246,7 +286,9 @@ export default function DailyBonus({ onClaim }) {
                         )}
 
                         <div className="mt-6 pt-4 border-t border-border text-center text-sm text-muted-foreground">
-                            Total bonuses claimed: <span className="font-mono text-foreground">{status?.total_claims || 0}</span>
+                            {t('dailyBonus.totalClaimed', {
+                                count: status?.total_claims || 0,
+                            })}
                         </div>
                     </div>
                 </div>
@@ -257,8 +299,13 @@ export default function DailyBonus({ onClaim }) {
                     animation: glow-pulse-gold 2s ease-in-out infinite;
                 }
                 @keyframes glow-pulse-gold {
-                    0%, 100% { box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
-                    50% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.5); }
+                    0%,
+                    100% {
+                        box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+                    }
+                    50% {
+                        box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+                    }
                 }
                 .text-glow-gold {
                     text-shadow: 0 0 10px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3);
