@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Gift, Clock, Flame, Sparkles, X, ChevronRight } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '../components/ui/button';
 import { supabase } from '../lib/supabase';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;

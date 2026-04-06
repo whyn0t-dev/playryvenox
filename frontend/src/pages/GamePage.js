@@ -7,10 +7,12 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { formatApiErrorDetail } from '../contexts/AuthContext';
 import DailyBonus from '../components/DailyBonus';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from "react-i18next";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function GamePage() {
+    const { t } = useTranslation();
     const [gameState, setGameState] = useState(null);
     const [loading, setLoading] = useState(true);
     const [clicking, setClicking] = useState(false);
@@ -63,13 +65,15 @@ export default function GamePage() {
 
             if (!hasShownOfflineToast.current && response.data?.offline_earned > 0) {
                 toast.success(
-                    `Depuis votre absence, vous avez généré ${formatNumber(response.data.offline_earned)} users`
+                    t("game.toasts.offlineEarned", {
+                        amount: formatNumber(response.data.offline_earned),
+                    })
                 );
                 hasShownOfflineToast.current = true;
             }
         } catch (error) {
             if (error.response?.status !== 401) {
-                toast.error('Failed to sync game state');
+                toast.error(t("game.errors.syncFailed"));
             }
         } finally {
             setLoading(false);
@@ -142,7 +146,7 @@ export default function GamePage() {
             }));
         } catch (error) {
             if (error.response?.status === 429) {
-                toast.error('Slow down! Too many clicks.');
+                toast.error(t("game.errors.tooManyClicks"));
             }
         } finally {
             setClicking(false);
@@ -166,14 +170,19 @@ export default function GamePage() {
                 toast.success(
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-primary" />
-                        <span><strong>{response.data.upgrade_name}</strong> upgraded to level {response.data.new_level}!</span>
+                        <span>
+                            <strong>{response.data.upgrade_name}</strong>{" "}
+                            {t("game.toasts.upgradedToLevel", { level: response.data.new_level })}
+                        </span>
                     </div>
                 );
                 await fetchGameState(false);
                 await fetchTransferStatus();
             }
         } catch (error) {
-            const message = formatApiErrorDetail(error.response?.data?.detail) || 'Failed to buy upgrade';
+            const message =
+                formatApiErrorDetail(error.response?.data?.detail) ||
+                t("game.errors.buyUpgradeFailed");
             toast.error(message);
         } finally {
             setBuyingUpgrade(null);
@@ -185,7 +194,7 @@ export default function GamePage() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                    <p className="text-muted-foreground">Loading your startup...</p>
+                    <p className="text-muted-foreground">{t("game.loading")}</p>
                 </div>
             </div>
         );
@@ -205,17 +214,17 @@ export default function GamePage() {
         const amount = Number(transferAmount);
 
         if (!recipient) {
-            toast.error('Veuillez saisir un username destinataire');
+            toast.error(t("game.transfer.errors.recipientRequired"));
             return;
         }
 
         if (!Number.isFinite(amount) || amount <= 0) {
-            toast.error('Veuillez saisir un montant valide');
+            toast.error(t("game.transfer.errors.invalidAmount"));
             return;
         }
 
         if ((gameState?.current_users || 0) < amount) {
-            toast.error("Vous n'avez pas assez de users");
+            toast.error(t("game.transfer.errors.notEnoughUsers"));
             return;
         }
 
@@ -237,9 +246,11 @@ export default function GamePage() {
                 <div className="flex items-center gap-2">
                     <SendHorizontal className="w-4 h-4 text-primary" />
                     <span>
-                        <strong>{formatNumber(response.data.amount_sent)}</strong> users envoyés à{' '}
-                        <strong>{response.data.recipient_username}</strong>{' '}
-                        ({formatNumber(response.data.amount_received)} reçus après frais)
+                        {t("game.transfer.success", {
+                            sent: formatNumber(response.data.amount_sent),
+                            recipient: response.data.recipient_username,
+                            received: formatNumber(response.data.amount_received),
+                        })}
                     </span>
                 </div>
             );
@@ -251,7 +262,7 @@ export default function GamePage() {
         } catch (error) {
             const message =
                 formatApiErrorDetail(error.response?.data?.detail) ||
-                'Échec du transfert';
+                t("game.transfer.errors.failed");
             toast.error(message);
         } finally {
             setTransferring(false);
@@ -264,7 +275,7 @@ export default function GamePage() {
                 {/* Header with Daily Bonus */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-muted-foreground">
-                        Level <span className="text-primary font-bold">{gameState?.level || 1}</span>
+                        {t("game.level")} <span className="text-primary font-bold">{gameState?.level || 1}</span>
                     </div>
                     <DailyBonus onClaim={handleDailyClaim} />
                 </div>
@@ -274,7 +285,7 @@ export default function GamePage() {
                     <div className="stats-card-highlight fade-in" data-testid="stat-current-users">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>Current Users</span>
+                            <span>{t("game.stats.currentUsers")}</span>
                         </div>
                         <div className={`text-xl sm:text-2xl lg:text-3xl counter-display text-glow ${counterAnimating ? 'counter-bump' : ''}`}>
                             {formatNumber(gameState?.current_users || 0)}
@@ -284,7 +295,7 @@ export default function GamePage() {
                     <div className="stats-card fade-in stagger-1" data-testid="stat-total-users">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>Total Generated</span>
+                            <span>{t("game.stats.currentUsers")}</span>
                         </div>
                         <div className="text-xl sm:text-2xl lg:text-3xl counter-display">
                             {formatNumber(gameState?.total_users_generated || 0)}
@@ -294,7 +305,7 @@ export default function GamePage() {
                     <div className="stats-card fade-in stagger-2" data-testid="stat-click-power">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <MousePointer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>Click Power</span>
+                            <span>{t("game.stats.clickPower")}</span>
                         </div>
                         <div className="text-xl sm:text-2xl lg:text-3xl counter-display text-primary">
                             +{gameState?.click_power || 1}
@@ -304,7 +315,7 @@ export default function GamePage() {
                     <div className="stats-card fade-in stagger-3" data-testid="stat-passive-income">
                         <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm mb-1">
                             <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>Passive Income</span>
+                            <span>{t("game.stats.passiveIncome")}</span>
                         </div>
                         <div className="text-xl sm:text-2xl lg:text-3xl counter-display text-glow-success" style={{ color: 'hsl(142, 76%, 55%)' }}>
                             +{gameState?.passive_income || 0}/s
@@ -317,23 +328,25 @@ export default function GamePage() {
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                             <SendHorizontal className="w-5 h-5 text-primary" />
-                            Transfer Users
+                            {t("game.transfer.title")}
                         </h2>
                         <span className="text-xs text-muted-foreground">
-                            Balance: {formatNumber(gameState?.current_users || 0)} users
+                            {t("game.transfer.balance", {
+                                amount: formatNumber(gameState?.current_users || 0),
+                            })}
                         </span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label className="text-xs text-muted-foreground mb-1 block">
-                                Recipient username
+                                {t("game.transfer.recipient")}
                             </label>
                             <input
                                 type="text"
                                 value={transferRecipient}
                                 onChange={(e) => setTransferRecipient(e.target.value)}
-                                placeholder="ex: player123"
+                                placeholder={t("game.transfer.recipientPlaceholder")}
                                 className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
                                 data-testid="transfer-recipient-input"
                             />
@@ -341,7 +354,7 @@ export default function GamePage() {
 
                         <div>
                             <label className="text-xs text-muted-foreground mb-1 block">
-                                Amount
+                                {t("game.transfer.amount")}
                             </label>
                             <input
                                 type="number"
@@ -349,7 +362,7 @@ export default function GamePage() {
                                 step="0.01"
                                 value={transferAmount}
                                 onChange={(e) => setTransferAmount(e.target.value)}
-                                placeholder="100"
+                                placeholder={t("game.transfer.amountPlaceholder")}
                                 className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
                                 data-testid="transfer-amount-input"
                             />
@@ -371,7 +384,7 @@ export default function GamePage() {
                                 ) : (
                                     <>
                                         <SendHorizontal className="w-4 h-4 mr-2" />
-                                        Transfer
+                                        {t("game.transfer.submit")}
                                     </>
                                 )}
                             </Button>
@@ -382,20 +395,29 @@ export default function GamePage() {
                         {transferStatus && (
                             <>
                                 <div>
-                                    Niveau requis : {transferStatus.min_level_required}
+                                    {t("game.transfer.requiredLevel", {
+                                        level: transferStatus.min_level_required,
+                                    })}
                                 </div>
                                 <div>
-                                    Frais : {transferStatus.fee_percent}%
+                                    {t("game.transfer.fee", {
+                                        percent: transferStatus.fee_percent,
+                                    })}
                                 </div>
                                 <div>
-                                    Limite restante : {formatNumber(transferStatus.remaining_in_window)} / {formatNumber(transferStatus.window_limit)} users
+                                    {t("game.transfer.remainingLimit", {
+                                        remaining: formatNumber(transferStatus.remaining_in_window),
+                                        limit: formatNumber(transferStatus.window_limit),
+                                    })}
                                 </div>
                             </>
                         )}
 
                         {transferStatus && !transferStatus.can_send && (
                             <div className="text-red-400">
-                                Vous devez être niveau {transferStatus.min_level_required} pour envoyer des users.
+                                {t("game.transfer.levelRequiredWarning", {
+                                    level: transferStatus.min_level_required,
+                                })}
                             </div>
                         )}
                     </div>
@@ -406,7 +428,7 @@ export default function GamePage() {
                     <div className="lg:col-span-5 flex flex-col items-center justify-center py-6 sm:py-8 fade-in">
                         <div className="text-center mb-4 sm:mb-6">
                             <div className="inline-block level-badge mb-3">
-                                LEVEL {gameState?.level || 1}
+                                {t("game.levelBadge")} {gameState?.level || 1}
                             </div>
                             <div
                                 className={`text-5xl sm:text-6xl lg:text-7xl counter-display text-glow-strong ${counterAnimating ? 'counter-bump' : ''}`}
@@ -414,7 +436,7 @@ export default function GamePage() {
                             >
                                 {formatNumber(gameState?.current_users || 0)}
                             </div>
-                            <div className="text-muted-foreground mt-1 text-sm">users</div>
+                            <div className="text-muted-foreground mt-1 text-sm">{t("game.users")}</div>
                         </div>
 
                         {/* Clicker Button */}
@@ -425,8 +447,12 @@ export default function GamePage() {
                                 data-testid="launch-campaign-btn"
                             >
                                 <Zap className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground mb-1" />
-                                <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">LAUNCH</span>
-                                <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">CAMPAIGN</span>
+                                <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">
+                                    {t("game.clicker.launch")}
+                                </span>
+                                <span className="text-primary-foreground font-bold text-xs sm:text-sm tracking-wide">
+                                    {t("game.clicker.campaign")}
+                                </span>
                             </button>
 
                             {/* Click Feedback */}
@@ -442,13 +468,13 @@ export default function GamePage() {
                         </div>
 
                         <p className="text-muted-foreground text-xs sm:text-sm mt-4 sm:mt-6">
-                            Click to acquire users
+                            {t("game.clicker.help")}
                         </p>
 
                         {gameState?.passive_income > 0 && (
                             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                                 <Bot className="w-3 h-3" />
-                                Earning {gameState.passive_income}/sec automatically
+                                {t("game.clicker.passiveEarning", { amount: gameState.passive_income })}
                             </p>
                         )}
                     </div>
@@ -459,10 +485,12 @@ export default function GamePage() {
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                                     <ShoppingCart className="w-5 h-5 text-primary" />
-                                    Upgrades
+                                    {t("game.upgrades.title")}
                                 </h2>
                                 <span className="text-xs text-muted-foreground">
-                                    {formatNumber(gameState?.current_users || 0)} users available
+                                    {t("game.upgrades.availableUsers", {
+                                        amount: formatNumber(gameState?.current_users || 0),
+                                    })}
                                 </span>
                             </div>
 
@@ -472,10 +500,10 @@ export default function GamePage() {
                                     <div className="flex items-center justify-between mb-3">
                                         <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-cyan-300">
                                             <MousePointer className="w-3.5 h-3.5" />
-                                            Click Power
+                                            {t("game.upgrades.clickPower")}
                                         </h3>
                                         <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
-                                            Boost manuel
+                                            {t("game.upgrades.manualBoost")}
                                         </span>
                                     </div>
 
@@ -489,6 +517,7 @@ export default function GamePage() {
                                                 formatCost={formatCost}
                                                 index={i}
                                                 variant="click"
+                                                t={t}
                                             />
                                         ))}
                                     </div>
@@ -499,10 +528,10 @@ export default function GamePage() {
                                     <div className="flex items-center justify-between mb-3">
                                         <h3 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-emerald-300">
                                             <Bot className="w-3.5 h-3.5" />
-                                            Passive Income
+                                            {t("game.upgrades.passiveIncome")}
                                         </h3>
                                         <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-200">
-                                            Gain automatique
+                                            {t("game.upgrades.autoGain")}
                                         </span>
                                     </div>
 
@@ -516,6 +545,7 @@ export default function GamePage() {
                                                 formatCost={formatCost}
                                                 index={i}
                                                 variant="passive"
+                                                t ={t}
                                             />
                                         ))}
                                     </div>
@@ -529,7 +559,7 @@ export default function GamePage() {
     );
 }
 
-function UpgradeItem({ upgrade, onBuy, buying, formatCost, index, variant = 'click' }) {
+function UpgradeItem({ upgrade, onBuy, buying, formatCost, index, variant = "click", t }) {
     const isClick = variant === 'click';
 
     return (
@@ -560,7 +590,7 @@ function UpgradeItem({ upgrade, onBuy, buying, formatCost, index, variant = 'cli
                                 : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'}
                         `}
                     >
-                        {isClick ? 'Click' : 'Passive'}
+                        {isClick ? t("game.upgrades.typeClick") : t("game.upgrades.typePassive")}
                     </span>
 
                     {upgrade.level > 0 && (
@@ -601,7 +631,7 @@ function UpgradeItem({ upgrade, onBuy, buying, formatCost, index, variant = 'cli
                     {buying ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                        'BUY'
+                        t("game.upgrades.buy")
                     )}
                 </Button>
             </div>

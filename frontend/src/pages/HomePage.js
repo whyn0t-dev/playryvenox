@@ -1,628 +1,608 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import {
-    Rocket,
-    Users,
-    TrendingUp,
-    Zap,
-    Trophy,
-    Bot,
-    MousePointer,
-    Crown,
-    Flame,
-    Target,
-    Star
-} from 'lucide-react';
-import { Button } from '../components/ui/button';
+  Rocket,
+  Users,
+  TrendingUp,
+  Zap,
+  Trophy,
+  Bot,
+  MousePointer,
+  Crown,
+  Flame,
+  Target,
+  Star,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function HomePage() {
-    const { isAuthenticated } = useAuth();
-    const [topPlayers, setTopPlayers] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
+  const [topPlayers, setTopPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchTopPlayers = async () => {
-            try {
-                const response = await axios.get(`${API}/leaderboard/top10`);
-                const data = response.data;
+  useEffect(() => {
+    const fetchTopPlayers = async () => {
+      try {
+        const response = await axios.get(`${API}/leaderboard/top10`);
+        const data = response.data;
 
-                if (Array.isArray(data)) {
-                    setTopPlayers(data);
-                } else if (data && Array.isArray(data.players)) {
-                    setTopPlayers(data.players);
-                } else {
-                    console.error('Unexpected leaderboard response format:', data);
-                    setTopPlayers([]);
-                }
-            } catch (error) {
-                console.error('Error fetching leaderboard:', error);
-                setTopPlayers([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchTopPlayers();
-    }, []);
-
-    const formatNumber = (num) => {
-        if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
-        return Math.floor(num).toLocaleString();
+        if (Array.isArray(data)) {
+          setTopPlayers(data);
+        } else if (data && Array.isArray(data.players)) {
+          setTopPlayers(data.players);
+        } else {
+          console.error("Unexpected leaderboard response format:", data);
+          setTopPlayers([]);
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        setTopPlayers([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const topPlayer = Array.isArray(topPlayers) && topPlayers.length > 0 ? topPlayers[0] : null;
+    fetchTopPlayers();
+  }, []);
 
-    return (
-        <div className="min-h-screen">
-            {/* Hero Section */}
-            <section className="relative py-20 lg:py-32 overflow-hidden border-b border-border">
-                <div
-                    className="absolute inset-0 z-0"
-                    style={{
-                        backgroundImage:
-                            'url(https://images.unsplash.com/photo-1639066648921-82d4500abf1a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwxfHxkYXJrJTIwc2VydmVyJTIwcm9vbSUyMHRlY2h8ZW58MHx8fHwxNzc1Mzc3NzgzfDA&ixlib=rb-4.1.0&q=85)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}
-                >
-                    <div className="absolute inset-0 bg-black/80" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-background" />
-                </div>
+  const formatNumber = (num) => {
+    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + "B";
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(2) + "K";
+    return Math.floor(num).toLocaleString();
+  };
 
-                <div className="absolute inset-0 z-0 pointer-events-none">
-                    <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-3xl rounded-full" />
-                </div>
+  const topPlayer =
+    Array.isArray(topPlayers) && topPlayers.length > 0 ? topPlayers[0] : null;
 
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-5xl mx-auto text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-sm mb-8 backdrop-blur-sm">
-                            <Zap className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-medium text-primary tracking-wide">
-                                IDLE CLICKER GAME • BUILD • AUTOMATE • DOMINATE
-                            </span>
-                        </div>
-
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter mb-6 text-glow-strong leading-none">
-                            BUILD THE NEXT
-                            <br />
-                            <span className="text-primary">AI EMPIRE</span>
-                        </h1>
-
-                        <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-                            Start with nothing. Acquire users, unlock upgrades, automate your growth,
-                            and climb the leaderboard until your startup becomes unstoppable.
-                        </p>
-
-                        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10">
-                            <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
-                                <span className="text-foreground font-semibold">Fast to start</span> • addictive in seconds
-                            </div>
-                            <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
-                                <span className="text-foreground font-semibold">Compete globally</span> • top leaderboard race
-                            </div>
-                            <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
-                                <span className="text-foreground font-semibold">Scale smart</span> • clicks + passive income
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-                            {isAuthenticated ? (
-                                <Link to="/game">
-                                    <Button
-                                        data-testid="play-now-btn"
-                                        className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active shadow-lg shadow-primary/20"
-                                    >
-                                        <Rocket className="w-5 h-5 mr-2" />
-                                        PLAY NOW
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link to="/register">
-                                        <Button
-                                            data-testid="get-started-btn"
-                                            className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active shadow-lg shadow-primary/20"
-                                        >
-                                            <Rocket className="w-5 h-5 mr-2" />
-                                            START BUILDING
-                                        </Button>
-                                    </Link>
-                                    <Link to="/login">
-                                        <Button
-                                            data-testid="login-btn"
-                                            variant="outline"
-                                            className="h-14 px-10 text-lg font-medium border-border hover:bg-secondary rounded-sm"
-                                        >
-                                            LOGIN
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-                            <div className="stats-card text-left">
-                                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                                    <MousePointer className="w-4 h-4 text-primary" />
-                                    Start Simple
-                                </div>
-                                <div className="text-lg font-semibold mb-1">Click to acquire users</div>
-                                <p className="text-sm text-muted-foreground">
-                                    Every click grows your startup and pushes you closer to your next upgrade.
-                                </p>
-                            </div>
-
-                            <div className="stats-card text-left">
-                                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                                    <Bot className="w-4 h-4 text-primary" />
-                                    Scale Automatically
-                                </div>
-                                <div className="text-lg font-semibold mb-1">Unlock passive income</div>
-                                <p className="text-sm text-muted-foreground">
-                                    Automate growth and keep generating users even while you’re away.
-                                </p>
-                            </div>
-
-                            <div className="stats-card text-left">
-                                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                                    <Trophy className="w-4 h-4 text-primary" />
-                                    Compete for Glory
-                                </div>
-                                <div className="text-lg font-semibold mb-1">Beat the best founders</div>
-                                <p className="text-sm text-muted-foreground">
-                                    Climb the leaderboard and prove your startup deserves the crown.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Why It Hooks Section */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-3xl mx-auto text-center mb-12">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-4">
-                            <Flame className="w-4 h-4 text-primary" />
-                            <span className="text-sm text-primary font-medium">Why players keep coming back</span>
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-                            Easy to start. Hard to stop.
-                        </h2>
-                        <p className="text-muted-foreground text-lg">
-                            The thrill of growth, the satisfaction of automation, and the pressure of competition —
-                            all in one addictive startup simulator.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="stats-card">
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
-                                <Zap className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Instant Progress</h3>
-                            <p className="text-muted-foreground">
-                                You feel stronger every minute with better click power, faster growth,
-                                and more meaningful upgrades.
-                            </p>
-                        </div>
-
-                        <div className="stats-card">
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
-                                <Target className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Strategic Choices</h3>
-                            <p className="text-muted-foreground">
-                                Choose between immediate gains and long-term automation to optimize
-                                your startup’s path to domination.
-                            </p>
-                        </div>
-
-                        <div className="stats-card">
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
-                                <Crown className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Leaderboard Pressure</h3>
-                            <p className="text-muted-foreground">
-                                Every gain matters when other founders are racing for the same top spot.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* How It Works */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-3xl mx-auto text-center mb-12">
-                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                            How It Works
-                        </h2>
-                        <p className="text-muted-foreground text-lg">
-                            From solo founder to global AI giant in three simple steps.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="stats-card relative overflow-hidden">
-                            <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">01</div>
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
-                                <Users className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Click to Grow</h3>
-                            <p className="text-muted-foreground">
-                                Launch campaigns and bring in your first users. Small beginnings lead to massive growth.
-                            </p>
-                        </div>
-
-                        <div className="stats-card relative overflow-hidden">
-                            <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">02</div>
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
-                                <TrendingUp className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Upgrade & Automate</h3>
-                            <p className="text-muted-foreground">
-                                Boost click power, unlock passive income, and turn your startup into a growth machine.
-                            </p>
-                        </div>
-
-                        <div className="stats-card relative overflow-hidden">
-                            <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">03</div>
-                            <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
-                                <Trophy className="w-6 h-6 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Compete Globally</h3>
-                            <p className="text-muted-foreground">
-                                Race up the leaderboard and build the startup everyone else is trying to catch.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* SEO Content Section */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-5">
-                            <Star className="w-4 h-4 text-primary" />
-                            <span className="text-sm text-primary font-medium">Useful guide for players</span>
-                        </div>
-
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
-                            What makes this Ryvenox Empire game different?
-                        </h2>
-
-                        <div className="space-y-5 text-muted-foreground text-base sm:text-lg leading-8">
-                            <p>
-                                This Ryvenox Empire game combines the fast satisfaction of an idle game with the long-term
-                                strategy of a business growth simulator. Instead of clicking aimlessly, players build a digital
-                                company from the ground up, acquire users, unlock automation, and make smart upgrade decisions
-                                to create a scalable growth engine. The result is a browser game that feels simple at first,
-                                but becomes much deeper as your startup expands.
-                            </p>
-
-                            <p>
-                                Many incremental games focus only on bigger numbers. Here, progression is tied to a clearer
-                                fantasy: becoming the founder of a powerful AI empire. Every improvement has a purpose. More
-                                click power helps you grow faster in the early game, passive income rewards long-term planning,
-                                and the leaderboard adds a competitive layer that pushes players to refine their strategy.
-                                That balance between instant reward and optimization is what makes idle and clicker games so engaging.
-                            </p>
-
-                            <p>
-                                For new players, the appeal is obvious: you can start in seconds, understand the core loop
-                                immediately, and still discover better ways to progress over time. For experienced players,
-                                the game offers a familiar but more thematic progression system built around startup growth,
-                                automation, user acquisition, and scaling. If you enjoy incremental games, idle games,
-                                startup simulators, or online leaderboard competition, this experience gives you several
-                                reasons to keep coming back.
-                            </p>
-
-                            <p>
-                                The competitive element is also important. A live leaderboard transforms solo progression into
-                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
-                                efficient path to growth and overtaking other players. That sense of pressure gives each
-                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
-                                plan can make the difference between staying average and reaching the top founders.
-                                 The competitive element is also important. A live leaderboard transforms solo progression into
-                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
-                                efficient path to growth and overtaking other players. That sense of pressure gives each
-                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
-                                plan can make the difference between staying average and reaching the top founders.
-                                 The competitive element is also important. A live leaderboard transforms solo progression into
-                                a race. It is no longer only about unlocking the next upgrade, but about finding the most
-                                efficient path to growth and overtaking other players. That sense of pressure gives each
-                                decision more value. A well-timed upgrade, a better automation path, or a stronger early-game
-                                plan can make the difference between staying average and reaching the top founders. 
-                            </p>
-
-                            <p>
-                                Players who want to improve faster can explore the{' '}
-                                <Link to="/how-to-play" className="text-primary hover:underline font-medium">
-                                    how to play guide
-                                </Link>
-                                , read the{' '}
-                                <Link to="/faq" className="text-primary hover:underline font-medium">
-                                    frequently asked questions
-                                </Link>
-                                , or jump directly into the{' '}
-                                <Link to="/leaderboard" className="text-primary hover:underline font-medium">
-                                    global leaderboard
-                                </Link>
-                                . If you are ready to begin, you can{' '}
-                                <Link to="/register" className="text-primary hover:underline font-medium">
-                                    create an account for free
-                                </Link>
-                                {' '}and start building immediately.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Beginner Strategy Section */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="text-center mb-12">
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                                Beginner tips to grow faster
-                            </h2>
-                            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-                                A few smart decisions early on can accelerate your progress and help you climb the rankings much faster.
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="stats-card">
-                                <h3 className="text-xl font-semibold mb-3">1. Build momentum early</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    In the beginning, active clicking matters a lot. Your first objective is to generate
-                                    enough users quickly to unlock the first meaningful upgrades. A strong early start
-                                    makes the mid-game smoother and gives you access to better scaling tools sooner.
-                                </p>
-                            </div>
-
-                            <div className="stats-card">
-                                <h3 className="text-xl font-semibold mb-3">2. Balance clicks and automation</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    Do not focus only on raw click strength. Passive income and automation are what allow
-                                    your startup to keep growing over time. The best strategy is usually a balanced one:
-                                    enough manual power to progress now, and enough automation to scale later.
-                                </p>
-                            </div>
-
-                            <div className="stats-card">
-                                <h3 className="text-xl font-semibold mb-3">3. Watch the leaderboard</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    The leaderboard is more than a vanity feature. It shows what is possible and gives you
-                                    a concrete target. Competing against stronger players can help you stay motivated,
-                                    refine your approach, and push for more efficient growth paths.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Leaderboard Preview */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-3">
-                                <Star className="w-4 h-4 text-primary" />
-                                <span className="text-sm text-primary font-medium">Live competition energy</span>
-                            </div>
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-                                <Trophy className="w-8 h-8 text-primary" />
-                                Top Players
-                            </h2>
-                            <p className="text-muted-foreground mt-2 max-w-2xl">
-                                The strongest founders are already scaling. Your name could be next on this list.
-                            </p>
-                        </div>
-
-                        <Link to="/leaderboard">
-                            <Button variant="outline" className="rounded-sm" data-testid="view-all-leaderboard-btn">
-                                View Full Leaderboard
-                            </Button>
-                        </Link>
-                    </div>
-
-                    {topPlayer && !loading && (
-                        <div className="stats-card mb-6 border-primary/30 bg-primary/5">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
-                                        <Crown className="w-4 h-4" />
-                                        Current #1 Founder
-                                    </div>
-                                    <div className="text-2xl font-bold">{topPlayer.username}</div>
-                                    <p className="text-muted-foreground mt-1">
-                                        Already generated {formatNumber(topPlayer.total_users_generated)} users and reached level {topPlayer.level}.
-                                    </p>
-                                </div>
-                                {!isAuthenticated && (
-                                    <Link to="/register">
-                                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active">
-                                            Try to beat them
-                                        </Button>
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="overflow-x-auto">
-                        <table className="leaderboard-table" data-testid="home-leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th className="w-20">Rank</th>
-                                    <th>Player</th>
-                                    <th className="text-right">Total Users</th>
-                                    <th className="text-right w-24">Level</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={4} className="text-center py-8 text-muted-foreground">
-                                            Loading...
-                                        </td>
-                                    </tr>
-                                ) : !Array.isArray(topPlayers) || topPlayers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="text-center py-8 text-muted-foreground">
-                                            No players yet. Be the first founder to dominate the leaderboard.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    topPlayers.slice(0, 10).map((player) => (
-                                        <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
-                                            <td
-                                                className={`font-mono font-bold ${
-                                                    player.rank === 1
-                                                        ? 'rank-1'
-                                                        : player.rank === 2
-                                                        ? 'rank-2'
-                                                        : player.rank === 3
-                                                        ? 'rank-3'
-                                                        : ''
-                                                }`}
-                                            >
-                                                #{player.rank}
-                                            </td>
-                                            <td className="font-medium">{player.username}</td>
-                                            <td className="text-right font-mono">
-                                                {formatNumber(player.total_users_generated)}
-                                            </td>
-                                            <td className="text-right">
-                                                <span className="px-2 py-1 bg-primary/10 text-primary text-sm font-medium">
-                                                    LVL {player.level}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            {/* FAQ SEO Section */}
-            {/* FAQ SEO Section */}
-            <section className="py-20 border-t border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="text-center mb-12">
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                                Frequently asked questions
-                            </h2>
-                            <p className="text-muted-foreground text-lg">
-                                Quick answers for new players who want to understand the game faster.
-                            </p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="stats-card">
-                                <h3 className="text-lg font-semibold mb-2">Is this AI clicker game free to play?</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    Yes. New players can create an account and start building their startup for free.
-                                    The core gameplay loop is designed to be accessible immediately, with progression
-                                    based on smart decisions, active play, and automation upgrades.
-                                </p>
-                            </div>
-
-                            <div className="stats-card">
-                                <h3 className="text-lg font-semibold mb-2">How do I progress faster?</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    The fastest way to improve is to combine strong early clicking with efficient upgrade
-                                    timing. Focus on building momentum first, then invest in systems that continue
-                                    generating users passively. Players who balance manual growth and automation
-                                    usually scale better in the long run.
-                                </p>
-                            </div>
-
-                            <div className="stats-card">
-                                <h3 className="text-lg font-semibold mb-2">What is the goal of the game?</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    Your goal is to grow from a tiny startup into a dominant AI empire. That means
-                                    generating more users, unlocking stronger upgrades, improving your production,
-                                    and climbing the leaderboard ahead of other players.
-                                </p>
-                            </div>
-
-                            <div className="stats-card">
-                                <h3 className="text-lg font-semibold mb-2">Where can I learn the full rules?</h3>
-                                <p className="text-muted-foreground leading-7">
-                                    You can visit the{' '}
-                                    <Link to="/how-to-play" className="text-primary hover:underline font-medium">
-                                        How To Play
-                                    </Link>
-                                    {' '}page for a more complete explanation of the gameplay systems, progression flow,
-                                    and strategic advice. You can also browse the{' '}
-                                    <Link to="/faq" className="text-primary hover:underline font-medium">
-                                        FAQ
-                                    </Link>
-                                    {' '}page for additional help.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Final CTA */}
-            {!isAuthenticated && (
-                <section className="py-20 border-t border-border">
-                    <div className="container mx-auto px-4">
-                        <div className="max-w-4xl mx-auto text-center stats-card border-primary/20 bg-gradient-to-b from-primary/10 to-transparent">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-5">
-                                <Rocket className="w-4 h-4 text-primary" />
-                                <span className="text-sm text-primary font-medium">Start free</span>
-                            </div>
-
-                            <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
-                                Ready to launch your AI startup?
-                            </h2>
-
-                            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto text-lg">
-                                Build faster, scale smarter, automate growth, and compete for the top spot.
-                                Your empire starts with a single click.
-                            </p>
-
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <Link to="/register">
-                                    <Button
-                                        data-testid="cta-start-playing-btn"
-                                        className="h-12 px-8 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active"
-                                    >
-                                        Start Playing Free
-                                    </Button>
-                                </Link>
-
-                                <Link to="/leaderboard">
-                                    <Button
-                                        variant="outline"
-                                        className="h-12 px-8 text-lg font-medium rounded-sm"
-                                    >
-                                        See the Competition
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
+  return (
+    <div className="min-h-screen">
+      <section className="relative py-20 lg:py-32 overflow-hidden border-b border-border">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1639066648921-82d4500abf1a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwxfHxkYXJrJTIwc2VydmVyJTIwcm9vbSUyMHRlY2h8ZW58MHx8fHwxNzc1Mzc3NzgzfDA&ixlib=rb-4.1.0&q=85)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-background" />
         </div>
-    );
+
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-3xl rounded-full" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-sm mb-8 backdrop-blur-sm">
+              <Zap className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary tracking-wide">
+                {t("home.hero.badge")}
+              </span>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter mb-6 text-glow-strong leading-none">
+              {t("home.hero.title.line1")}
+              <br />
+              <span className="text-primary">{t("home.hero.title.line2")}</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+              {t("home.hero.description")}
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10">
+              <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
+                <span className="text-foreground font-semibold">
+                  {t("home.hero.feature1.title")}
+                </span>{" "}
+                • {t("home.hero.feature1.text")}
+              </div>
+              <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
+                <span className="text-foreground font-semibold">
+                  {t("home.hero.feature2.title")}
+                </span>{" "}
+                • {t("home.hero.feature2.text")}
+              </div>
+              <div className="px-4 py-2 bg-background/50 border border-border rounded-sm backdrop-blur-sm text-sm text-muted-foreground">
+                <span className="text-foreground font-semibold">
+                  {t("home.hero.feature3.title")}
+                </span>{" "}
+                • {t("home.hero.feature3.text")}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+              {isAuthenticated ? (
+                <Link to="/game">
+                  <Button
+                    data-testid="play-now-btn"
+                    className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active shadow-lg shadow-primary/20"
+                  >
+                    <Rocket className="w-5 h-5 mr-2" />
+                    {t("home.hero.cta.playNow")}
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/register">
+                    <Button
+                      data-testid="get-started-btn"
+                      className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active shadow-lg shadow-primary/20"
+                    >
+                      <Rocket className="w-5 h-5 mr-2" />
+                      {t("home.hero.cta.startBuilding")}
+                    </Button>
+                  </Link>
+                  <Link to="/login">
+                    <Button
+                      data-testid="login-btn"
+                      variant="outline"
+                      className="h-14 px-10 text-lg font-medium border-border hover:bg-secondary rounded-sm"
+                    >
+                      {t("home.hero.cta.login")}
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              <div className="stats-card text-left">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                  <MousePointer className="w-4 h-4 text-primary" />
+                  {t("home.cards.simple.kicker")}
+                </div>
+                <div className="text-lg font-semibold mb-1">
+                  {t("home.cards.simple.title")}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("home.cards.simple.description")}
+                </p>
+              </div>
+
+              <div className="stats-card text-left">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                  <Bot className="w-4 h-4 text-primary" />
+                  {t("home.cards.auto.kicker")}
+                </div>
+                <div className="text-lg font-semibold mb-1">
+                  {t("home.cards.auto.title")}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("home.cards.auto.description")}
+                </p>
+              </div>
+
+              <div className="stats-card text-left">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                  <Trophy className="w-4 h-4 text-primary" />
+                  {t("home.cards.glory.kicker")}
+                </div>
+                <div className="text-lg font-semibold mb-1">
+                  {t("home.cards.glory.title")}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("home.cards.glory.description")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-4">
+              <Flame className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-medium">
+                {t("home.why.badge")}
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
+              {t("home.why.title")}
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              {t("home.why.description")}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="stats-card">
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.why.items.progress.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.why.items.progress.description")}
+              </p>
+            </div>
+
+            <div className="stats-card">
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
+                <Target className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.why.items.strategy.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.why.items.strategy.description")}
+              </p>
+            </div>
+
+            <div className="stats-card">
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
+                <Crown className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.why.items.pressure.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.why.items.pressure.description")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+              {t("home.how.title")}
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              {t("home.how.description")}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="stats-card relative overflow-hidden">
+              <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">
+                01
+              </div>
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.how.step1.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.how.step1.description")}
+              </p>
+            </div>
+
+            <div className="stats-card relative overflow-hidden">
+              <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">
+                02
+              </div>
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.how.step2.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.how.step2.description")}
+              </p>
+            </div>
+
+            <div className="stats-card relative overflow-hidden">
+              <div className="absolute top-4 right-4 text-5xl font-black text-primary/10">
+                03
+              </div>
+              <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
+                <Trophy className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("home.how.step3.title")}
+              </h3>
+              <p className="text-muted-foreground">
+                {t("home.how.step3.description")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-5">
+              <Star className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-medium">
+                {t("home.guide.badge")}
+              </span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">
+              {t("home.guide.title")}
+            </h2>
+
+            <div className="space-y-5 text-muted-foreground text-base sm:text-lg leading-8">
+              <p>{t("home.guide.p1")}</p>
+              <p>{t("home.guide.p2")}</p>
+              <p>{t("home.guide.p3")}</p>
+              <p>{t("home.guide.p4")}</p>
+
+              <p>
+                {t("home.guide.links.intro")}{" "}
+                <Link to="/how-to-play" className="text-primary hover:underline font-medium">
+                  {t("home.guide.links.howToPlay")}
+                </Link>
+                , {t("home.guide.links.read")}{" "}
+                <Link to="/faq" className="text-primary hover:underline font-medium">
+                  {t("home.guide.links.faq")}
+                </Link>
+                , {t("home.guide.links.or")}{" "}
+                <Link to="/leaderboard" className="text-primary hover:underline font-medium">
+                  {t("home.guide.links.leaderboard")}
+                </Link>
+                . {t("home.guide.links.end")}{" "}
+                <Link to="/register" className="text-primary hover:underline font-medium">
+                  {t("home.guide.links.createAccount")}
+                </Link>{" "}
+                {t("home.guide.links.startNow")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+                {t("home.tips.title")}
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                {t("home.tips.description")}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="stats-card">
+                <h3 className="text-xl font-semibold mb-3">
+                  {t("home.tips.tip1.title")}
+                </h3>
+                <p className="text-muted-foreground leading-7">
+                  {t("home.tips.tip1.description")}
+                </p>
+              </div>
+
+              <div className="stats-card">
+                <h3 className="text-xl font-semibold mb-3">
+                  {t("home.tips.tip2.title")}
+                </h3>
+                <p className="text-muted-foreground leading-7">
+                  {t("home.tips.tip2.description")}
+                </p>
+              </div>
+
+              <div className="stats-card">
+                <h3 className="text-xl font-semibold mb-3">
+                  {t("home.tips.tip3.title")}
+                </h3>
+                <p className="text-muted-foreground leading-7">
+                  {t("home.tips.tip3.description")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-3">
+                <Star className="w-4 h-4 text-primary" />
+                <span className="text-sm text-primary font-medium">
+                  {t("home.leaderboard.badge")}
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
+                <Trophy className="w-8 h-8 text-primary" />
+                {t("home.leaderboard.title")}
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl">
+                {t("home.leaderboard.description")}
+              </p>
+            </div>
+
+            <Link to="/leaderboard">
+              <Button variant="outline" className="rounded-sm" data-testid="view-all-leaderboard-btn">
+                {t("home.leaderboard.viewAll")}
+              </Button>
+            </Link>
+          </div>
+
+          {topPlayer && !loading && (
+            <div className="stats-card mb-6 border-primary/30 bg-primary/5">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-primary text-sm font-medium mb-2">
+                    <Crown className="w-4 h-4" />
+                    {t("home.leaderboard.topFounder")}
+                  </div>
+                  <div className="text-2xl font-bold">{topPlayer.username}</div>
+                  <p className="text-muted-foreground mt-1">
+                    {t("home.leaderboard.topFounderStats", {
+                      users: formatNumber(topPlayer.total_users_generated),
+                      level: topPlayer.level,
+                    })}
+                  </p>
+                </div>
+                {!isAuthenticated && (
+                  <Link to="/register">
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active">
+                      {t("home.leaderboard.tryBeat")}
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="leaderboard-table" data-testid="home-leaderboard-table">
+              <thead>
+                <tr>
+                  <th className="w-20">{t("home.table.rank")}</th>
+                  <th>{t("home.table.player")}</th>
+                  <th className="text-right">{t("home.table.totalUsers")}</th>
+                  <th className="text-right w-24">{t("home.table.level")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-8 text-muted-foreground">
+                      {t("home.table.loading")}
+                    </td>
+                  </tr>
+                ) : !Array.isArray(topPlayers) || topPlayers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-8 text-muted-foreground">
+                      {t("home.table.empty")}
+                    </td>
+                  </tr>
+                ) : (
+                  topPlayers.slice(0, 10).map((player) => (
+                    <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
+                      <td
+                        className={`font-mono font-bold ${
+                          player.rank === 1
+                            ? "rank-1"
+                            : player.rank === 2
+                            ? "rank-2"
+                            : player.rank === 3
+                            ? "rank-3"
+                            : ""
+                        }`}
+                      >
+                        #{player.rank}
+                      </td>
+                      <td className="font-medium">{player.username}</td>
+                      <td className="text-right font-mono">
+                        {formatNumber(player.total_users_generated)}
+                      </td>
+                      <td className="text-right">
+                        <span className="px-2 py-1 bg-primary/10 text-primary text-sm font-medium">
+                          {t("home.table.lvl")} {player.level}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
+                {t("home.faq.title")}
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                {t("home.faq.description")}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="stats-card">
+                <h3 className="text-lg font-semibold mb-2">{t("home.faq.q1")}</h3>
+                <p className="text-muted-foreground leading-7">{t("home.faq.a1")}</p>
+              </div>
+
+              <div className="stats-card">
+                <h3 className="text-lg font-semibold mb-2">{t("home.faq.q2")}</h3>
+                <p className="text-muted-foreground leading-7">{t("home.faq.a2")}</p>
+              </div>
+
+              <div className="stats-card">
+                <h3 className="text-lg font-semibold mb-2">{t("home.faq.q3")}</h3>
+                <p className="text-muted-foreground leading-7">{t("home.faq.a3")}</p>
+              </div>
+
+              <div className="stats-card">
+                <h3 className="text-lg font-semibold mb-2">{t("home.faq.q4")}</h3>
+                <p className="text-muted-foreground leading-7">
+                  {t("home.faq.a4.intro")}{" "}
+                  <Link to="/how-to-play" className="text-primary hover:underline font-medium">
+                    {t("home.faq.a4.howToPlay")}
+                  </Link>{" "}
+                  {t("home.faq.a4.middle")}{" "}
+                  <Link to="/faq" className="text-primary hover:underline font-medium">
+                    {t("home.faq.a4.faq")}
+                  </Link>{" "}
+                  {t("home.faq.a4.end")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {!isAuthenticated && (
+        <section className="py-20 border-t border-border">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center stats-card border-primary/20 bg-gradient-to-b from-primary/10 to-transparent">
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-sm mb-5">
+                <Rocket className="w-4 h-4 text-primary" />
+                <span className="text-sm text-primary font-medium">
+                  {t("home.finalCta.badge")}
+                </span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
+                {t("home.finalCta.title")}
+              </h2>
+
+              <p className="text-muted-foreground mb-8 max-w-2xl mx-auto text-lg">
+                {t("home.finalCta.description")}
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/register">
+                  <Button
+                    data-testid="cta-start-playing-btn"
+                    className="h-12 px-8 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm btn-active"
+                  >
+                    {t("home.finalCta.start")}
+                  </Button>
+                </Link>
+
+                <Link to="/leaderboard">
+                  <Button
+                    variant="outline"
+                    className="h-12 px-8 text-lg font-medium rounded-sm"
+                  >
+                    {t("home.finalCta.seeCompetition")}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
+  );
 }

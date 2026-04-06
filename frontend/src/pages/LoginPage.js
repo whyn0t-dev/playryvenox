@@ -6,8 +6,10 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { LogIn, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export default function LoginPage() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,12 +22,12 @@ export default function LoginPage() {
         setError('');
 
         if (!email.trim()) {
-            setError('Please enter your email');
+            setError(t('login.errors.emailRequired'));
             return;
         }
 
         if (!password) {
-            setError('Please enter your password');
+            setError(t('login.errors.passwordRequired'));
             return;
         }
 
@@ -35,7 +37,7 @@ export default function LoginPage() {
 
         if (result.success) {
             const username = result.user?.username || 'player';
-            toast.success(`Welcome back, ${username}!`);
+            toast.success(t('login.success', { username }));
             navigate('/game');
         } else {
             setError(result.error);
@@ -49,12 +51,15 @@ export default function LoginPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 mb-4">
                         <LogIn className="w-8 h-8 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight">Welcome Back</h1>
-                    <p className="text-muted-foreground mt-2 text-sm">Sign in to continue your journey</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('login.title')}</h1>
+                    <p className="text-muted-foreground mt-2 text-sm">{t('login.subtitle')}</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-start gap-2 fade-in" data-testid="login-error">
+                    <div
+                        className="mb-6 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-start gap-2 fade-in"
+                        data-testid="login-error"
+                    >
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -63,7 +68,7 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
                         <Label htmlFor="email" className="text-sm font-medium">
-                            Email
+                            {t('login.email')}
                         </Label>
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -75,7 +80,7 @@ export default function LoginPage() {
                                     setEmail(e.target.value);
                                     setError('');
                                 }}
-                                placeholder="you@example.com"
+                                placeholder={t('login.emailPlaceholder')}
                                 className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-email-input"
                                 disabled={loading}
@@ -86,7 +91,7 @@ export default function LoginPage() {
 
                     <div className="space-y-2">
                         <Label htmlFor="password" className="text-sm font-medium">
-                            Password
+                            {t('login.password')}
                         </Label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -98,7 +103,7 @@ export default function LoginPage() {
                                     setPassword(e.target.value);
                                     setError('');
                                 }}
-                                placeholder="Enter your password"
+                                placeholder={t('login.passwordPlaceholder')}
                                 className="pl-10 h-11 bg-background border-border rounded-sm focus:ring-2 focus:ring-primary/20"
                                 data-testid="login-password-input"
                                 disabled={loading}
@@ -116,12 +121,12 @@ export default function LoginPage() {
                         {loading ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Signing in...
+                                {t('login.loading')}
                             </>
                         ) : (
                             <>
                                 <LogIn className="w-4 h-4 mr-2" />
-                                Sign In
+                                {t('login.submit')}
                             </>
                         )}
                     </Button>
@@ -129,9 +134,9 @@ export default function LoginPage() {
 
                 <div className="mt-6 text-center">
                     <p className="text-muted-foreground text-sm">
-                        Don't have an account?{' '}
+                        {t('login.noAccount')}{' '}
                         <Link to="/register" className="text-primary hover:underline font-medium" data-testid="go-to-register-link">
-                            Sign up
+                            {t('login.signup')}
                         </Link>
                     </p>
                 </div>

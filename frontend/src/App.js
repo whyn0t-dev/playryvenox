@@ -1,4 +1,6 @@
 import "@/App.css";
+import "@/i18n"; // 🔥 IMPORTANT
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/sonner";
@@ -17,8 +19,18 @@ import HowToPlay from "./pages/HowToPlay";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import LegalNoticePage from "./pages/LegalNoticePage";
+import Footer from "components/Footer";
+
+import { useEffect } from "react";
+import i18n from "i18next";
 
 function App() {
+
+  useEffect(() => {
+    // exemple : forcer FR par défaut
+    i18n.changeLanguage("fr");
+  }, []);
+
   return (
     <AuthProvider>
       <div className="App min-h-screen bg-background text-foreground">
@@ -57,6 +69,7 @@ function App() {
               />
             </Routes>
           </main>
+          <Footer />
         </BrowserRouter>
         <Toaster position="bottom-right" />
       </div>

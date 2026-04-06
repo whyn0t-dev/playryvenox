@@ -1,6 +1,8 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
-export default function FAQPage() {
+export default function FAQPage() { 
+  const { t } = useTranslation();
   const faqs = [
     {
       q: "Qu’est-ce que Ryvenox Empire ?",

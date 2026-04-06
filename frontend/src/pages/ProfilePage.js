@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
-import { User, Trophy, Users, MousePointer, Bot, TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Gift, Clock, Flame, Sparkles, X, ChevronRight } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from "react-i18next";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function ProfilePage() {
-    const { user } = useAuth();
-    const [profile, setProfile] = useState(null);
+export default function DailyBonus({ onClaim }) {
+    const { t } = useTranslation();
+    const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [claiming, setClaiming] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
     const getAuthHeaders = async () => {
         const {
@@ -17,7 +22,7 @@ export default function ProfilePage() {
         } = await supabase.auth.getSession();
 
         if (!session?.access_token) {
-            throw new Error('No active session');
+            throw new Error(t('dailyBonus.session.noActive'));
         }
 
         return {
@@ -25,149 +30,251 @@ export default function ProfilePage() {
         };
     };
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const headers = await getAuthHeaders();
-                const response = await axios.get(`${API}/profile`, { headers });
-                setProfile(response.data);
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
+    const fetchStatus = useCallback(async () => {
+        try {
+            const headers = await getAuthHeaders();
+            const response = await axios.get(`${API}/daily/status`, { headers });
+            setStatus(response.data);
+            setCountdown(response.data.seconds_until_available);
+        } catch (error) {
+            console.error('Error fetching daily status:', error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    const formatNumber = (num) => {
-        if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
-        return Math.floor(num).toLocaleString();
-    };
+    useEffect(() => {
+        fetchStatus();
+    }, [fetchStatus]);
 
-    const formatDate = (dateStr) => {
-        if (!dateStr || dateStr === 'Unknown') return 'Unknown';
-        try {
-            return new Date(dateStr).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+    useEffect(() => {
+        if (countdown <= 0) return;
+
+        const timer = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    fetchStatus();
+                    return 0;
+                }
+                return prev - 1;
             });
-        } catch {
-            return 'Unknown';
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [countdown, fetchStatus]);
+
+    const handleClaim = async () => {
+        if (claiming || !status?.available) return;
+
+        setClaiming(true);
+        try {
+            const headers = await getAuthHeaders();
+            const response = await axios.post(`${API}/daily/claim`, {}, { headers });
+
+            if (response.data.success) {
+                toast.success(
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-yellow-400" />
+                        <div>
+                            <div className="font-bold">{t('dailyBonus.toast.claimedTitle')}</div>
+                            <div className="text-sm opacity-80">
+                                {t('dailyBonus.toast.claimedReward', {
+                                    reward: response.data.reward.toLocaleString()
+                                })}
+                            </div>
+                        </div>
+                    </div>,
+                    { duration: 4000 }
+                );
+
+                setShowModal(false);
+                await fetchStatus();
+
+                if (onClaim) {
+                    onClaim(response.data.reward);
+                }
+            }
+        } catch (error) {
+            const message = error.response?.data?.detail || t('dailyBonus.errors.claimFailed');
+            toast.error(message);
+        } finally {
+            setClaiming(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
-    }
+    const formatTime = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hours > 0) {
+            return t('dailyBonus.time.hoursMinutes', { hours, minutes });
+        }
+        return t('dailyBonus.time.minutesSeconds', { minutes, seconds: secs });
+    };
+
+    if (loading) return null;
+
+    const streakDays = Array.from({ length: status?.max_streak || 7 }, (_, i) => i + 1);
 
     return (
-        <div className="min-h-screen py-8 px-4" data-testid="profile-page">
-            <div className="container mx-auto max-w-3xl">
-                <div className="stats-card mb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 bg-primary/10 border border-primary/30 flex items-center justify-center">
-                            <User className="w-10 h-10 text-primary" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold" data-testid="profile-username">
-                                {profile?.username || user?.username}
-                            </h1>
-                            <p className="text-muted-foreground" data-testid="profile-email">
-                                {profile?.email || user?.email}
+        <>
+            <button
+                onClick={() => setShowModal(true)}
+                className={`relative flex items-center gap-2 px-3 py-2 rounded-sm transition-all duration-200 ${
+                    status?.available
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/50 hover:border-yellow-400 text-yellow-400 glow-pulse-gold'
+                        : 'bg-secondary/50 border border-border hover:border-muted-foreground text-muted-foreground'
+                }`}
+                data-testid="daily-bonus-button"
+            >
+                <Gift className={`w-5 h-5 ${status?.available ? 'animate-bounce' : ''}`} />
+                <span className="font-medium text-sm">
+                    {status?.available ? t('dailyBonus.button.claim') : formatTime(countdown)}
+                </span>
+                {status?.available && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping" />
+                )}
+            </button>
+
+            {showModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in"
+                    data-testid="daily-bonus-modal"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div className="relative w-full max-w-md bg-card border border-border rounded-sm p-6 slide-in-right" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10 p-1"
+                            data-testid="daily-bonus-close-btn"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                                status?.available
+                                    ? 'bg-gradient-to-br from-yellow-500/30 to-orange-500/30 border-2 border-yellow-500/50'
+                                    : 'bg-muted border border-border'
+                            }`}>
+                                <Gift className={`w-8 h-8 ${status?.available ? 'text-yellow-400' : 'text-muted-foreground'}`} />
+                            </div>
+                            <h2 className="text-2xl font-bold">{t('dailyBonus.modal.title')}</h2>
+                            <p className="text-muted-foreground text-sm mt-1">
+                                {t('dailyBonus.modal.subtitle')}
                             </p>
-                            <div className="flex items-center gap-4 mt-2">
-                                <span className="px-3 py-1 bg-primary/10 text-primary font-medium">
-                                    Level {profile?.level || 1}
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                    <Flame className="w-4 h-4 text-orange-400" />
+                                    {t('dailyBonus.streak')}
                                 </span>
-                                <span className="flex items-center gap-1 text-muted-foreground">
-                                    <Trophy className="w-4 h-4" />
-                                    Rank #{profile?.rank || '-'}
+                                <span className="text-sm font-mono">
+                                    {t('dailyBonus.dayProgress', {
+                                        current: status?.available ? status?.next_streak : status?.current_streak,
+                                        max: status?.max_streak
+                                    })}
                                 </span>
                             </div>
+
+                            <div className="flex gap-1">
+                                {streakDays.map((day) => {
+                                    const isCompleted = day <= (status?.current_streak || 0);
+                                    const isNext = day === (status?.next_streak || 1) && status?.available;
+                                    const isCurrent = day === (status?.current_streak || 0) && !status?.available;
+
+                                    return (
+                                        <div
+                                            key={day}
+                                            className={`flex-1 h-2 rounded-full transition-all ${
+                                                isCompleted
+                                                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                                                    : isNext
+                                                    ? 'bg-yellow-500/50 animate-pulse'
+                                                    : isCurrent
+                                                    ? 'bg-primary/50'
+                                                    : 'bg-muted'
+                                            }`}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className={`p-4 rounded-sm mb-6 ${
+                            status?.available
+                                ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30'
+                                : 'bg-muted/50 border border-border'
+                        }`}>
+                            <div className="text-center">
+                                <div className="text-sm text-muted-foreground mb-1">
+                                    {status?.available
+                                        ? t('dailyBonus.reward.today')
+                                        : t('dailyBonus.reward.next')}
+                                </div>
+                                <div className={`text-3xl font-bold font-mono ${
+                                    status?.available ? 'text-yellow-400 text-glow-gold' : 'text-foreground'
+                                }`}>
+                                    +{(status?.next_reward || 0).toLocaleString()}
+                                </div>
+                                <div className="text-sm text-muted-foreground">{t('dailyBonus.users')}</div>
+                            </div>
+                        </div>
+
+                        {status?.available ? (
+                            <Button
+                                onClick={handleClaim}
+                                disabled={claiming}
+                                className="w-full h-12 font-bold text-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:from-yellow-400 hover:to-orange-400 rounded-sm btn-active"
+                                data-testid="claim-daily-btn"
+                            >
+                                {claiming ? (
+                                    <span className="flex items-center gap-2">
+                                        <Sparkles className="w-5 h-5 animate-spin" />
+                                        {t('dailyBonus.claiming')}
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <Gift className="w-5 h-5" />
+                                        {t('dailyBonus.claimButton')}
+                                        <ChevronRight className="w-5 h-5" />
+                                    </span>
+                                )}
+                            </Button>
+                        ) : (
+                            <div className="text-center">
+                                <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                                    <Clock className="w-5 h-5" />
+                                    <span>{t('dailyBonus.nextAvailableIn')}</span>
+                                </div>
+                                <div className="text-2xl font-mono font-bold text-foreground">
+                                    {formatTime(countdown)}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-6 pt-4 border-t border-border text-center text-sm text-muted-foreground">
+                            {t('dailyBonus.totalClaimed', { count: status?.total_claims || 0 })}
                         </div>
                     </div>
                 </div>
+            )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <div className="stats-card" data-testid="profile-current-users">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <Users className="w-4 h-4" />
-                            <span>Current Users</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-glow">
-                            {formatNumber(profile?.current_users || 0)}
-                        </div>
-                    </div>
-
-                    <div className="stats-card" data-testid="profile-total-users">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <TrendingUp className="w-4 h-4" />
-                            <span>Total Generated</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold">
-                            {formatNumber(profile?.total_users_generated || 0)}
-                        </div>
-                    </div>
-
-                    <div className="stats-card" data-testid="profile-click-power">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <MousePointer className="w-4 h-4" />
-                            <span>Click Power</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-primary">
-                            +{profile?.click_power || 1}
-                        </div>
-                    </div>
-
-                    <div className="stats-card" data-testid="profile-passive-income">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                            <Bot className="w-4 h-4" />
-                            <span>Passive Income</span>
-                        </div>
-                        <div className="text-3xl font-mono font-bold text-green-400">
-                            +{profile?.passive_income || 0}/s
-                        </div>
-                    </div>
-                </div>
-
-                <div className="stats-card">
-                    <h2 className="text-lg font-bold mb-4">Account Details</h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between py-2 border-b border-border">
-                            <span className="text-muted-foreground flex items-center gap-2">
-                                <Trophy className="w-4 h-4" />
-                                Global Rank
-                            </span>
-                            <span className="font-mono font-bold" data-testid="profile-rank">
-                                #{profile?.rank || '-'}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between py-2 border-b border-border">
-                            <span className="text-muted-foreground">Total Upgrades Purchased</span>
-                            <span className="font-mono font-bold" data-testid="profile-total-upgrades">
-                                {profile?.total_upgrades || 0}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-muted-foreground flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                Member Since
-                            </span>
-                            <span className="font-medium" data-testid="profile-created-at">
-                                {formatDate(profile?.created_at)}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <style jsx>{`
+                .glow-pulse-gold {
+                    animation: glow-pulse-gold 2s ease-in-out infinite;
+                }
+                @keyframes glow-pulse-gold {
+                    0%, 100% { box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
+                    50% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.5); }
+                }
+                .text-glow-gold {
+                    text-shadow: 0 0 10px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3);
+                }
+            `}</style>
+        </>
     );
 }
