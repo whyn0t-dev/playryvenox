@@ -27,8 +27,6 @@ from supabase import create_client, Client
 
 import uuid
 
-from decimal import Decimal
-from decimal import Decimal, ROUND_HALF_UP
 # ===========================================
 # CONFIGURATION
 # ===========================================
@@ -217,7 +215,7 @@ class TransferUsersRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     recipient_username: str
-    amount: Decimal
+    amount: float
 
     @field_validator("recipient_username")
     @classmethod
@@ -232,25 +230,24 @@ class TransferUsersRequest(BaseModel):
     def validate_amount(cls, v):
         if v <= 0:
             raise ValueError("Amount must be greater than 0")
-        if v > Decimal("1000"):
+        if v > 1000:
             raise ValueError("Maximum transfer is 1000")
-        return v.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return round(v, 2)
 
 # ===========================================
 # GAME CONSTANTS
 # ===========================================
 INITIAL_UPGRADES = [
     {"id": "landing_page", "name": "Landing Page", "type": "click", "effect": 1, "base_cost": 15, "description": "+1 per click", "sort_order": 1},
-    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 120, "description": "+2 per click", "sort_order": 2},
-    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 4, "base_cost": 650, "description": "+4 per click", "sort_order": 3},
-    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 8, "base_cost": 2800, "description": "+8 per click", "sort_order": 4},
-    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 18, "base_cost": 14000, "description": "+18 per click", "sort_order": 5},
-
-    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 40, "description": "+1/sec", "sort_order": 6},
-    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 3, "base_cost": 350, "description": "+3/sec", "sort_order": 7},
-    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 10, "base_cost": 1800, "description": "+10/sec", "sort_order": 8},
-    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 40, "base_cost": 9000, "description": "+40/sec", "sort_order": 9},
-    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 120, "base_cost": 45000, "description": "+120/sec", "sort_order": 10},
+    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 100, "description": "+2 per click", "sort_order": 2},
+    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 5, "base_cost": 500, "description": "+5 per click", "sort_order": 3},
+    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 10, "base_cost": 2000, "description": "+10 per click", "sort_order": 4},
+    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 25, "base_cost": 10000, "description": "+25 per click", "sort_order": 5},
+    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 25, "description": "+1/sec", "sort_order": 6},
+    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 5, "base_cost": 200, "description": "+5/sec", "sort_order": 7},
+    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 20, "base_cost": 1000, "description": "+20/sec", "sort_order": 8},
+    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 75, "base_cost": 5000, "description": "+75/sec", "sort_order": 9},
+    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 250, "base_cost": 25000, "description": "+250/sec", "sort_order": 10},
 ]
 
 VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
@@ -258,37 +255,34 @@ VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
 # ===========================================
 # TRANSFER CONSTANTS
 # ===========================================
-TRANSFER_MAX_AMOUNT = Decimal("1000.00")
+TRANSFER_MAX_AMOUNT = 1000
 TRANSFER_WINDOW_DAYS = 5
-TRANSFER_FEE_PERCENT = Decimal("0.10")
-TRANSFER_MIN_LEVEL = 500
+TRANSFER_FEE_PERCENT = 0.10  # 10%
+TRANSFER_MIN_LEVEL = 3
 
-def calculate_upgrade_cost(base_cost, level: int):
-    base_cost = Decimal(base_cost)
-    multiplier = Decimal("1.85") ** level
-    cost = base_cost * multiplier
-    return cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def calculate_upgrade_cost(base_cost: float, level: int) -> float:
+    return round(base_cost * (1.65 ** level), 2)
 
 # ===========================================
 # DAILY BONUS CONSTANTS
 # ===========================================
 DAILY_BONUS_COOLDOWN_HOURS = 24
-DAILY_BONUS_BASE_REWARD = 50  # Base users reward
+DAILY_BONUS_BASE_REWARD = 100  # Base users reward
 DAILY_STREAK_MULTIPLIERS = {
-    1: 1.0,
-    2: 1.2,
-    3: 1.5,
-    4: 2.0,
-    5: 2.5,
-    6: 3.0,
-    7: 5.0,
+    1: 1.0,    # Day 1: 100 users
+    2: 1.5,    # Day 2: 150 users
+    3: 2.0,    # Day 3: 200 users
+    4: 3.0,    # Day 4: 300 users
+    5: 4.0,    # Day 5: 400 users
+    6: 5.0,    # Day 6: 500 users
+    7: 10.0,   # Day 7: 1000 users (big bonus!)
 }
 MAX_STREAK_DAYS = 7  # Streak resets after day 7
 
 def calculate_daily_bonus(level: int, streak: int) -> int:
     """Calculate daily bonus based on player level and streak"""
     # Base reward scales with level
-    level_bonus = DAILY_BONUS_BASE_REWARD * (1 + (level - 1) * 0.15)
+    level_bonus = DAILY_BONUS_BASE_REWARD * (1 + (level - 1) * 0.5)
     # Apply streak multiplier
     streak_day = min(streak + 1, MAX_STREAK_DAYS)  # +1 because streak is current, we're calculating next
     multiplier = DAILY_STREAK_MULTIPLIERS.get(streak_day, 1.0)
@@ -345,106 +339,76 @@ def get_daily_bonus_status(stats: PlayerStats) -> dict:
 # ===========================================
 # GAME LOGIC HELPERS
 # ===========================================
-async def get_or_create_player_stats(db: AsyncSession, user_id) -> PlayerStats:
-    result = await db.execute(
-        select(PlayerStats).where(PlayerStats.user_id == user_id)
-    )
+async def get_or_create_player_stats(db: AsyncSession, user_id: str) -> PlayerStats:
+    result = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user_id))
     stats = result.scalar_one_or_none()
-
+    
     if not stats:
         stats = PlayerStats(user_id=user_id)
         db.add(stats)
         await db.commit()
         await db.refresh(stats)
-
-    result = await db.execute(select(Upgrade.id))
-    all_upgrade_ids = set(result.scalars().all())
-
-    result = await db.execute(
-        select(PlayerUpgrade.upgrade_id).where(PlayerUpgrade.user_id == user_id)
-    )
-    existing_upgrade_ids = set(result.scalars().all())
-
-    missing_upgrade_ids = all_upgrade_ids - existing_upgrade_ids
-
-    for upgrade_id in missing_upgrade_ids:
-        db.add(PlayerUpgrade(user_id=user_id, upgrade_id=upgrade_id, level=0))
-
-    if missing_upgrade_ids:
+        
+        result = await db.execute(select(Upgrade))
+        upgrades = result.scalars().all()
+        for upgrade in upgrades:
+            player_upgrade = PlayerUpgrade(user_id=user_id, upgrade_id=upgrade.id, level=0)
+            db.add(player_upgrade)
         await db.commit()
-
+        
     return stats
 
-async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats):
+async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> tuple[PlayerStats, float]:
     now = datetime.now(timezone.utc)
     last_calc = stats.last_calculated_at
     if last_calc.tzinfo is None:
         last_calc = last_calc.replace(tzinfo=timezone.utc)
-
-    elapsed_seconds = Decimal(str((now - last_calc).total_seconds()))
-
-    max_offline_seconds = Decimal("14400")
+    
+    elapsed_seconds = (now - last_calc).total_seconds()
+    
+    # Cap offline earnings to 24 hours max
+    max_offline_seconds = 24 * 60 * 60
     elapsed_seconds = min(elapsed_seconds, max_offline_seconds)
-
-    offline_multiplier = Decimal("0.5")
-    gained = Decimal("0")
-
+    
+    gained = 0.0
+    
     if elapsed_seconds > 0 and stats.passive_income > 0:
-        gained = stats.passive_income * elapsed_seconds * offline_multiplier
+        gained = stats.passive_income * elapsed_seconds
         stats.current_users += gained
         stats.total_users_generated += gained
-
+    
     stats.last_calculated_at = now
     await db.commit()
     await db.refresh(stats)
-
+    
     return stats, gained
 
-async def recalculate_player_stats(db: AsyncSession, user_id):
+async def recalculate_player_stats(db: AsyncSession, user_id: str):
     result = await db.execute(
-        select(
-            PlayerUpgrade.level,
-            Upgrade.type,
-            Upgrade.effect
-        )
-        .join(Upgrade, Upgrade.id == PlayerUpgrade.upgrade_id)
+        select(PlayerUpgrade)
+        .options(selectinload(PlayerUpgrade.upgrade))
         .where(PlayerUpgrade.user_id == user_id)
     )
-    rows = result.all()
-
+    player_upgrades = result.scalars().all()
+    
     click_power = 1
-    passive_income = Decimal("0")
+    passive_income = 0
     total_levels = 0
-
-    click_multiplier = Decimal("0.7")
-
-    for level, upgrade_type, effect in rows:
-        if level > 0:
-            total_levels += level
-
-            effect = Decimal(effect)
-
-            if upgrade_type == "click":
-                gain = int(effect * Decimal(level) * click_multiplier)
-                click_power += max(1, gain)
+    
+    for pu in player_upgrades:
+        if pu.level > 0:
+            total_levels += pu.level
+            if pu.upgrade.type == "click":
+                click_power += pu.upgrade.effect * pu.level
             else:
-                # Decimal ne gère pas bien les puissances fractionnaires directement
-                gain = Decimal(str(float(effect) * (level ** 0.85))).quantize(
-                    Decimal("0.0001"),
-                    rounding=ROUND_HALF_UP
-                )
-                passive_income += gain
-
-    computed_level = 1 + (total_levels // 10)
-
+                passive_income += pu.upgrade.effect * pu.level
+    
+    level = 1 + (total_levels // 5)
+    
     await db.execute(
         update(PlayerStats)
         .where(PlayerStats.user_id == user_id)
-        .values(
-            click_power=click_power,
-            passive_income=passive_income,
-            level=computed_level
-        )
+        .values(click_power=click_power, passive_income=passive_income, level=level)
     )
     await db.commit()
 
@@ -562,21 +526,21 @@ async def get_game_state(request: Request, user: User = Depends(get_current_user
             "id": upgrade.id,
             "name": upgrade.name,
             "type": upgrade.type,
-            "effect": float(upgrade.effect),
+            "effect": upgrade.effect,
             "description": upgrade.description,
             "level": level,
-            "cost": float(cost),
+            "cost": cost,
             "can_afford": stats.current_users >= cost
         })
     
     return {
-        "current_users": float(round(stats.current_users, 2)),
-        "total_users_generated": float(round(stats.total_users_generated, 2)),
+        "current_users": round(stats.current_users, 2),
+        "total_users_generated": round(stats.total_users_generated, 2),
         "click_power": stats.click_power,
-        "passive_income": float(round(stats.passive_income, 2)),
+        "passive_income": stats.passive_income,
         "level": stats.level,
         "upgrades": upgrades_data,
-        "offline_earned": float(round(offline_earned, 2))
+        "offline_earned": round(offline_earned, 2)
     }
 
 @game_router.post("/click")
@@ -586,96 +550,81 @@ async def click(request: Request, user: User = Depends(get_current_user), db: As
     stats, _ = await recalculate_passive_income(db, stats)
     
     click_power = stats.click_power
-
-    click_gain = Decimal(click_power)
-    stats.current_users += click_gain
-    stats.total_users_generated += click_gain
+    stats.current_users += click_power
+    stats.total_users_generated += click_power
     
     await db.commit()
     await db.refresh(stats)
     
     return {
         "gained": click_power,
-        "current_users": float(round(stats.current_users, 2)),
-        "total_users_generated": float(round(stats.total_users_generated, 2))
+        "current_users": round(stats.current_users, 2),
+        "total_users_generated": round(stats.total_users_generated, 2)
     }
 
 @game_router.post("/buy-upgrade")
 @limiter.limit("60/minute")
 async def buy_upgrade(request: Request, data: BuyUpgradeRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    user_id = user.id
     upgrade_id = data.upgrade_id
-
-    try:
-        if upgrade_id not in VALID_UPGRADE_IDS:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid upgrade"
-            )
-
-        result = await db.execute(select(Upgrade).where(Upgrade.id == upgrade_id))
-        upgrade = result.scalar_one_or_none()
-        if not upgrade:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upgrade not found")
-
-        stats = await get_or_create_player_stats(db, user_id)
-        stats, _ = await recalculate_passive_income(db, stats)
-
-        result = await db.execute(
-            select(PlayerUpgrade).where(
-                PlayerUpgrade.user_id == user_id,
-                PlayerUpgrade.upgrade_id == upgrade_id
-            )
-        )
-        player_upgrade = result.scalar_one_or_none()
-        current_level = player_upgrade.level if player_upgrade else 0
-
-        cost = calculate_upgrade_cost(upgrade.base_cost, current_level)
-
-        if stats.current_users < cost:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Not enough users. Need {cost:.2f}, have {stats.current_users:.2f}"
-            )
-
-        stats.current_users -= cost
-
-        if player_upgrade:
-            player_upgrade.level += 1
-            new_level = player_upgrade.level
-        else:
-            player_upgrade = PlayerUpgrade(user_id=user_id, upgrade_id=upgrade_id, level=1)
-            db.add(player_upgrade)
-            new_level = 1
-
-        await db.commit()
-        await recalculate_player_stats(db, user_id)
-
-        result = await db.execute(
-            select(PlayerStats).where(PlayerStats.user_id == user_id)
-        )
-        updated_stats = result.scalar_one()
-
-        return {
-            "success": True,
-            "upgrade_id": upgrade_id,
-            "upgrade_name": upgrade.name,
-            "new_level": new_level,
-            "cost": float(cost),
-            "current_users": float(round(updated_stats.current_users, 2)),
-            "click_power": updated_stats.click_power,
-            "passive_income": float(round(updated_stats.passive_income, 2))
-        }
-
-    except HTTPException:
-        raise
-    except Exception:
-        await db.rollback()
-        logger.exception("BUY_UPGRADE ERROR user=%s upgrade=%s", user_id, upgrade_id)
+    
+    # Validate upgrade exists
+    if upgrade_id not in VALID_UPGRADE_IDS:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid upgrade"
         )
+    
+    result = await db.execute(select(Upgrade).where(Upgrade.id == upgrade_id))
+    upgrade = result.scalar_one_or_none()
+    if not upgrade:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upgrade not found")
+    
+    stats = await get_or_create_player_stats(db, user.id)
+    stats, _ = await recalculate_passive_income(db, stats)
+    
+    result = await db.execute(
+        select(PlayerUpgrade).where(
+            PlayerUpgrade.user_id == user.id,
+            PlayerUpgrade.upgrade_id == upgrade_id
+        )
+    )
+    player_upgrade = result.scalar_one_or_none()
+    current_level = player_upgrade.level if player_upgrade else 0
+    
+    cost = calculate_upgrade_cost(upgrade.base_cost, current_level)
+    
+    if stats.current_users < cost:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Not enough users. Need {cost:.0f}, have {stats.current_users:.0f}"
+        )
+    
+    stats.current_users -= cost
+    
+    if player_upgrade:
+        player_upgrade.level += 1
+        new_level = player_upgrade.level
+    else:
+        player_upgrade = PlayerUpgrade(user_id=user.id, upgrade_id=upgrade_id, level=1)
+        db.add(player_upgrade)
+        new_level = 1
+    
+    await db.commit()
+    await recalculate_player_stats(db, user.id)
+    
+    result = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
+    updated_stats = result.scalar_one()
+    
+    return {
+        "success": True,
+        "upgrade_id": upgrade_id,
+        "upgrade_name": upgrade.name,
+        "new_level": new_level,
+        "cost": cost,
+        "current_users": round(stats.current_users, 2),
+        "click_power": updated_stats.click_power,
+        "passive_income": updated_stats.passive_income
+    }
 
 # ===========================================
 # LEADERBOARD ROUTES
@@ -702,7 +651,7 @@ async def get_leaderboard(request: Request, page: int = 1, limit: int = 10, db: 
         result_list.append({
             "rank": skip + i + 1,
             "username": player.user.username if player.user else "Unknown",
-            "total_users_generated": float(round(player.total_users_generated, 2)),
+            "total_users_generated": round(player.total_users_generated, 2),
             "level": player.level
         })
     
@@ -730,7 +679,7 @@ async def get_top10(db: AsyncSession = Depends(get_db)):
         {
             "rank": i + 1,
             "username": player.user.username if player.user else "Unknown",
-            "total_users_generated": float(round(player.total_users_generated, 2)),
+            "total_users_generated": round(player.total_users_generated, 2),
             "level": player.level
         }
         for i, player in enumerate(players)
@@ -760,10 +709,10 @@ async def get_profile(user: User = Depends(get_current_user), db: AsyncSession =
     return {
         "username": user.username,
         "email": user.email,
-        "current_users": float(round(stats.current_users, 2)),
-        "total_users_generated": float(round(stats.total_users_generated, 2)),
+        "current_users": round(stats.current_users, 2),
+        "total_users_generated": round(stats.total_users_generated, 2),
         "click_power": stats.click_power,
-        "passive_income": float(round(stats.passive_income, 2)),
+        "passive_income": stats.passive_income,
         "level": stats.level,
         "rank": rank,
         "total_upgrades": int(total_upgrades),
@@ -859,9 +808,8 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
     now = datetime.now(timezone.utc)
     
     # Update player stats
-    reward_decimal = Decimal(reward)
-    stats.current_users += reward_decimal
-    stats.total_users_generated += reward_decimal
+    stats.current_users += reward
+    stats.total_users_generated += reward
     stats.last_daily_claim = now
     stats.daily_streak = new_streak
     stats.total_daily_claims = (stats.total_daily_claims or 0) + 1
@@ -878,9 +826,9 @@ async def claim_daily_bonus(request: Request, user: User = Depends(get_current_u
         "reward": reward,
         "new_streak": new_streak,
         "total_claims": stats.total_daily_claims,
-        "current_users": float(round(stats.current_users, 2)),
+        "current_users": round(stats.current_users, 2),
         "next_reward": next_reward,
-        "next_available_in": DAILY_BONUS_COOLDOWN_HOURS * 3600
+        "next_available_in": DAILY_BONUS_COOLDOWN_HOURS * 3600  # seconds
     }
 
 # ===========================================
@@ -892,13 +840,13 @@ async def get_transfer_status(user: User = Depends(get_current_user), db: AsyncS
     window_start = now - timedelta(days=TRANSFER_WINDOW_DAYS)
 
     result = await db.execute(
-        select(func.sum(UserTransfer.amount_sent)).where(
+        select(func.coalesce(func.sum(UserTransfer.amount_sent), 0.0)).where(
             UserTransfer.sender_id == user.id,
             UserTransfer.created_at >= window_start
         )
     )
-    sent_in_window = result.scalar() or Decimal("0.00")
-    remaining = max(Decimal("0.00"), TRANSFER_MAX_AMOUNT - sent_in_window)
+    sent_in_window = float(result.scalar() or 0.0)
+    remaining = max(0.0, TRANSFER_MAX_AMOUNT - sent_in_window)
 
     stats = await get_or_create_player_stats(db, user.id)
     stats, _ = await recalculate_passive_income(db, stats)
@@ -909,9 +857,9 @@ async def get_transfer_status(user: User = Depends(get_current_user), db: AsyncS
         "current_level": stats.level,
         "can_send": stats.level >= TRANSFER_MIN_LEVEL,
         "window_days": TRANSFER_WINDOW_DAYS,
-        "window_limit": float(TRANSFER_MAX_AMOUNT),
-        "sent_in_window": float(round(sent_in_window, 2)),
-        "remaining_in_window": float(round(remaining, 2)),
+        "window_limit": TRANSFER_MAX_AMOUNT,
+        "sent_in_window": round(sent_in_window, 2),
+        "remaining_in_window": round(remaining, 2),
         "fee_percent": int(TRANSFER_FEE_PERCENT * 100)
     }
 
@@ -954,15 +902,15 @@ async def send_users(
     window_start = now - timedelta(days=TRANSFER_WINDOW_DAYS)
 
     sent_result = await db.execute(
-        select(func.sum(UserTransfer.amount_sent)).where(
+        select(func.coalesce(func.sum(UserTransfer.amount_sent), 0.0)).where(
             UserTransfer.sender_id == user.id,
             UserTransfer.created_at >= window_start
         )
     )
-    total_sent_in_window = sent_result.scalar() or Decimal("0.00")
+    total_sent_in_window = float(sent_result.scalar() or 0.0)
 
     if total_sent_in_window + data.amount > TRANSFER_MAX_AMOUNT:
-        remaining = max(Decimal("0.00"), TRANSFER_MAX_AMOUNT - total_sent_in_window)
+        remaining = max(0.0, TRANSFER_MAX_AMOUNT - total_sent_in_window)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Transfer limit exceeded. You can still send {remaining:.2f} Users in the current {TRANSFER_WINDOW_DAYS}-day window."
@@ -977,8 +925,8 @@ async def send_users(
     recipient_stats = await get_or_create_player_stats(db, recipient.id)
     recipient_stats, _ = await recalculate_passive_income(db, recipient_stats)
 
-    fee_amount = (data.amount * TRANSFER_FEE_PERCENT).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    amount_received = (data.amount - fee_amount).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    fee_amount = round(data.amount * TRANSFER_FEE_PERCENT, 2)
+    amount_received = round(data.amount - fee_amount, 2)
 
     sender_stats.current_users -= data.amount
     recipient_stats.current_users += amount_received
@@ -996,19 +944,19 @@ async def send_users(
     await db.refresh(sender_stats)
     await db.refresh(recipient_stats)
 
-    new_remaining = max(Decimal("0.00"), TRANSFER_MAX_AMOUNT - (total_sent_in_window + data.amount))
+    new_remaining = max(0.0, TRANSFER_MAX_AMOUNT - (total_sent_in_window + data.amount))
 
     return {
         "success": True,
         "recipient_username": recipient.username,
-        "amount_sent": float(round(data.amount, 2)),
-        "fee_amount": float(fee_amount),
-        "amount_received": float(amount_received),
-        "sender_current_users": float(round(sender_stats.current_users, 2)),
-        "recipient_current_users": float(round(recipient_stats.current_users, 2)),
-        "window_limit": float(TRANSFER_MAX_AMOUNT),
+        "amount_sent": round(data.amount, 2),
+        "fee_amount": fee_amount,
+        "amount_received": amount_received,
+        "sender_current_users": round(sender_stats.current_users, 2),
+        "recipient_current_users": round(recipient_stats.current_users, 2),
+        "window_limit": TRANSFER_MAX_AMOUNT,
         "window_days": TRANSFER_WINDOW_DAYS,
-        "remaining_in_window": float(round(new_remaining, 2))
+        "remaining_in_window": round(new_remaining, 2)
     }
 
 
@@ -1039,9 +987,9 @@ async def get_transfer_history(
         "sent": [
             {
                 "to_username": username,
-                "amount_sent": float(round(transfer.amount_sent, 2)),
-                "fee_amount": float(round(transfer.fee_amount, 2)),
-                "amount_received": float(round(transfer.amount_received, 2)),
+                "amount_sent": round(transfer.amount_sent, 2),
+                "fee_amount": round(transfer.fee_amount, 2),
+                "amount_received": round(transfer.amount_received, 2),
                 "created_at": transfer.created_at.isoformat()
             }
             for transfer, username in sent_rows
@@ -1049,9 +997,9 @@ async def get_transfer_history(
         "received": [
             {
                 "from_username": username,
-                "amount_sent": float(round(transfer.amount_sent, 2)),
-                "fee_amount": float(round(transfer.fee_amount, 2)),
-                "amount_received": float(round(transfer.amount_received, 2)),
+                "amount_sent": round(transfer.amount_sent, 2),
+                "fee_amount": round(transfer.fee_amount, 2),
+                "amount_received": round(transfer.amount_received, 2),
                 "created_at": transfer.created_at.isoformat()
             }
             for transfer, username in received_rows
