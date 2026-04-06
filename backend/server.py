@@ -396,32 +396,40 @@ async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> tu
 
     return stats, gained
 
-async def recalculate_player_stats(db: AsyncSession, user_id: str):
+async def recalculate_player_stats(db: AsyncSession, user_id):
     result = await db.execute(
-        select(PlayerUpgrade)
-        .options(selectinload(PlayerUpgrade.upgrade))
+        select(
+            PlayerUpgrade.level,
+            Upgrade.type,
+            Upgrade.effect
+        )
+        .join(Upgrade, Upgrade.id == PlayerUpgrade.upgrade_id)
         .where(PlayerUpgrade.user_id == user_id)
     )
-    player_upgrades = result.scalars().all()
-    
+    rows = result.all()
+
     click_power = 1
     passive_income = 0.0
     total_levels = 0
-    
-    for pu in player_upgrades:
-        if pu.level > 0:
-            total_levels += pu.level
-            if pu.upgrade.type == "click":
-                click_power += max(1, int(pu.upgrade.effect * pu.level * 0.7)) # Diminishing returns for click upgrades
+
+    for level, upgrade_type, effect in rows:
+        if level > 0:
+            total_levels += level
+            if upgrade_type == "click":
+                click_power += max(1, int(effect * level * 0.7))
             else:
-                passive_income += pu.upgrade.effect * (pu.level ** 0.85)
-    
-    level = 1 + (total_levels // 10)  # Level up for every 10 upgrade levels
-    
+                passive_income += effect * (level ** 0.85)
+
+    computed_level = 1 + (total_levels // 10)
+
     await db.execute(
         update(PlayerStats)
         .where(PlayerStats.user_id == user_id)
-        .values(click_power=click_power, passive_income=passive_income, level=level)
+        .values(
+            click_power=click_power,
+            passive_income=passive_income,
+            level=computed_level
+        )
     )
     await db.commit()
 
@@ -577,12 +585,7 @@ async def click(request: Request, user: User = Depends(get_current_user), db: As
 
 @game_router.post("/buy-upgrade")
 @limiter.limit("60/minute")
-async def buy_upgrade(
-    request: Request,
-    data: BuyUpgradeRequest,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
+async def buy_upgrade(request: Request, data: BuyUpgradeRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
         upgrade_id = data.upgrade_id
 
@@ -595,10 +598,7 @@ async def buy_upgrade(
         result = await db.execute(select(Upgrade).where(Upgrade.id == upgrade_id))
         upgrade = result.scalar_one_or_none()
         if not upgrade:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Upgrade not found"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upgrade not found")
 
         stats = await get_or_create_player_stats(db, user.id)
         stats, _ = await recalculate_passive_income(db, stats)
@@ -626,11 +626,7 @@ async def buy_upgrade(
             player_upgrade.level += 1
             new_level = player_upgrade.level
         else:
-            player_upgrade = PlayerUpgrade(
-                user_id=user.id,
-                upgrade_id=upgrade_id,
-                level=1
-            )
+            player_upgrade = PlayerUpgrade(user_id=user.id, upgrade_id=upgrade_id, level=1)
             db.add(player_upgrade)
             new_level = 1
 
@@ -648,7 +644,7 @@ async def buy_upgrade(
             "upgrade_name": upgrade.name,
             "new_level": new_level,
             "cost": cost,
-            "current_users": round(stats.current_users, 2),
+            "current_users": round(updated_stats.current_users, 2),
             "click_power": updated_stats.click_power,
             "passive_income": updated_stats.passive_income
         }
