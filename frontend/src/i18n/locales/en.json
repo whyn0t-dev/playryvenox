@@ -291,5 +291,338 @@
     "footer.legal.terms": "Terms of Use",
     "footer.legal.privacy": "Privacy Policy",
     "footer.legal.notice": "Legal Notice",
-    "footer.copyright": "© {{year}} Ryvenox Empire. All rights reserved."
+    "footer.copyright": "© {{year}} Ryvenox Empire. All rights reserved.",
+    "faq.badge": "FAQ",
+    "faq.title": "Frequently Asked Questions",
+    "faq.subtitle": "Here you will find answers to the most common questions about how the game works, progression, user accounts, and the overall Ryvenox Empire experience.",
+    "faq.items.0.q": "What is Ryvenox Empire?",
+    "faq.items.0.a": "Ryvenox Empire is a competitive idle / clicker game where you build an AI startup. You click to gain users, unlock upgrades, automate your progress, and try to climb the global leaderboard.",
+    "faq.items.1.q": "Is the game free?",
+    "faq.items.1.a": "The game may be offered for free with direct browser access. Some features may evolve over time depending on the project's development.",
+    "faq.items.2.q": "Do I need an account to play?",
+    "faq.items.2.a": "Some features, such as progress saving, profile access, or participation in the leaderboard, may require creating an account.",
+    "faq.items.3.q": "How can I progress faster?",
+    "faq.items.3.a": "The best approach is to balance click power, automation, and regular returns to the game. A good upgrade strategy is often more important than click speed alone.",
+    "faq.items.4.q": "What is the leaderboard for?",
+    "faq.items.4.a": "The leaderboard lets you compare your progress with other players. It adds a competitive layer and encourages you to optimize your strategy.",
+    "faq.items.5.q": "Can I progress while offline or away?",
+    "faq.items.5.a": "Depending on the active mechanics in your session, you may generate users passively while away thanks to automation systems.",
+    "faq.items.6.q": "Does the game receive updates?",
+    "faq.items.6.a": "The project is intended to evolve with new balancing updates, improvements, content, gameplay adjustments, and technical optimizations.",
+    "faq.items.7.q": "How can I contact the site team?",
+    "faq.items.7.a": "You can use the Contact page for any questions related to support, partnerships, technical reports, or general inquiries.",
+    "faq.tips.title": "Best practices for progressing",
+    "faq.tips.paragraph1": "Many players think that simply clicking nonstop is enough. In reality, progression also depends on the timing of your purchases, your ability to anticipate, and your consistency.",
+    "faq.tips.paragraph2": "If you are just starting out, try to build a balance between immediate gains and automatic income. This will give you a stronger foundation over the long term.",
+    "eyebrow": "Legal information",
+    "eyebrow.title": "Legal Notice",
+    "intro": "These legal notices are intended to inform users of the site about the identity of the publisher, the hosting provider, the conditions of access to the site, and the responsibilities applicable to its use.",
+    "sections": {
+        "editor": {
+            "title": "1. Site publisher",
+            "siteName": "Website name:",
+            "siteNameValue": "Ryvenox Empire / Play Ryvenox",
+            "companyName": "Company or business name:",
+            "companyNameValue": "[To be completed]",
+            "legalStatus": "Legal status:",
+            "legalStatusValue": "[Sole proprietorship / Micro-business / SASU / SAS / EURL / Other]",
+            "publisher": "Publishing manager:",
+            "publisherValue": "[To be completed]",
+            "email": "Contact email address:",
+            "emailValue": "[To be completed]",
+            "address": "Postal address:",
+            "addressValue": "[To be completed]",
+            "phone": "Phone number:",
+            "phoneValue": "[Optional – to be completed]",
+            "siret": "SIREN / SIRET:",
+            "siretValue": "[To be completed]",
+            "vat": "VAT number:",
+            "vatValue": "[To be completed if applicable]"
+        },
+        "hosting": {
+            "title": "2. Hosting",
+            "host": "Hosting provider:",
+            "hostValue": "[Hosting provider name]",
+            "company": "Company name:",
+            "companyValue": "[To be completed]",
+            "address": "Address:",
+            "addressValue": "[To be completed]",
+            "website": "Website:",
+            "websiteValue": "[To be completed]",
+            "phone": "Phone:",
+            "phoneValue": "[Optional]"
+        },
+        "publicationDirector": {
+            "title": "3. Publication director",
+            "paragraph1": "The publication director of the website is:",
+            "paragraph1Strong": "[Name / Surname to be completed]",
+            "paragraph2": "Where applicable, the co-publication director is:",
+            "paragraph2Strong": "[To be completed if necessary]"
+        },
+        "development": {
+            "title": "4. Design and development",
+            "paragraph1": "The Ryvenox Empire / Play Ryvenox website was designed and developed by:",
+            "paragraph1Strong": "[To be completed]",
+            "paragraph2": "Technologies used: front-end web application, authentication services, backend services, and audience or performance measurement tools when necessary for the operation and improvement of the service."
+        },
+        "purpose": {
+            "title": "5. Purpose of the website",
+            "paragraph1": "The purpose of this website is to offer an online idle / clicker game allowing users to build a virtual startup, improve their progress, view a leaderboard, and access features related to their user account.",
+            "paragraph2": "The website may also provide informational content, help pages, presentation pages, rankings, news, as well as promotional or advertising content depending on the case."
+        },
+        "access": {
+            "title": "6. Website access",
+            "paragraph1": "The website is in principle accessible 24 hours a day, 7 days a week, except in the event of planned or unplanned interruptions, particularly for maintenance, updates, technical improvements, or force majeure.",
+            "paragraph2": "The publisher cannot be held liable for any unavailability, suspension, or interruption of the website, whatever the cause."
+        },
+        "intellectualProperty": {
+            "title": "7. Intellectual property",
+            "paragraph1": "All elements present on the website, including texts, graphics, logos, icons, interfaces, visual elements, illustrations, databases, features, source code, overall structure, and content, are protected by intellectual property law and belong to the website publisher or are used under license.",
+            "paragraph2": "Any reproduction, representation, distribution, adaptation, translation, modification, extraction, or exploitation, in whole or in part, of any of these elements, by any means whatsoever, without the prior written authorization of the publisher, is strictly prohibited, except where permitted by law.",
+            "paragraph3": "Any unauthorized use of the website or any of its elements may result in legal action."
+        },
+        "personalData": {
+            "title": "8. Personal data",
+            "paragraph1": "The website may collect and process certain personal data in connection with account creation, authentication, game progress management, user relations, platform security, audience measurement, and the possible display of advertising content.",
+            "paragraph2": "The detailed terms regarding collection, processing, storage, and the exercise of users’ rights are specified in the website’s Privacy Policy.",
+            "paragraph3": "In accordance with applicable regulations, users notably have the right of access, rectification, erasure, restriction, objection and, where applicable, data portability."
+        },
+        "cookies": {
+            "title": "9. Cookies and trackers",
+            "paragraph1": "The website may use cookies and other trackers to ensure proper operation, measure its audience, improve the user experience and, where applicable, offer personalized content or advertising.",
+            "paragraph2": "Where required by applicable regulations, the user’s consent is obtained before placing trackers that are not strictly necessary.",
+            "paragraph3": "For more information, users are invited to consult the website’s Privacy Policy or cookie policy."
+        },
+        "ads": {
+            "title": "10. Advertising and third-party services",
+            "paragraph1": "The website may display advertising, sponsored, or promotional content, in particular through third-party advertising platforms such as Google AdSense, subject to their actual implementation.",
+            "paragraph2": "These third-party services may use cookies, identifiers, or similar technologies to measure performance, limit ad repetition, or personalize displayed ads, in accordance with their own privacy policies and the choices expressed by the user.",
+            "paragraph3": "The publisher invites users to consult the information relating to data processing carried out by these partners via the website’s Privacy Policy."
+        },
+        "liability": {
+            "title": "11. Liability",
+            "paragraph1": "The publisher uses reasonable means to provide accurate information and an accessible service, but does not guarantee the permanent accuracy, completeness, or timeliness of the content published on the website.",
+            "paragraph2": "The user acknowledges using the website under their sole responsibility. The publisher cannot be held liable for direct or indirect, material or immaterial damage resulting from the use of the website, a service interruption, a bug, technical incompatibility, or unauthorized access.",
+            "paragraph3": "The publisher cannot be held liable for content accessible via any external links present on the website."
+        },
+        "account": {
+            "title": "12. User account",
+            "paragraph1": "Certain website features may require the creation of a user account. The user undertakes to provide accurate information, not to impersonate a third party, and to keep their login credentials confidential.",
+            "paragraph2": "The user remains responsible for all activity carried out through their account, unless they can prove fraudulent use not attributable to their fault.",
+            "paragraph3": "The publisher reserves the right to suspend or delete an account in the event of non-compliance with applicable rules, abuse, fraud, cheating attempts, harm to the proper functioning of the service, or behavior contrary to these legal notices and the terms of use."
+        },
+        "security": {
+            "title": "13. Security",
+            "paragraph1": "The publisher strives to implement appropriate technical and organizational measures to protect the website and the processed data against alteration, destruction, loss, disclosure, or unauthorized access.",
+            "paragraph2": "However, no system being completely invulnerable, the publisher cannot guarantee absolute security."
+        },
+        "applicableLaw": {
+            "title": "14. Applicable law",
+            "paragraph1": "These legal notices are governed by French law.",
+            "paragraph2": "In the event of a dispute and failing an amicable resolution, the French courts shall have sole jurisdiction, unless otherwise required by mandatory legal provisions."
+        },
+        "contact": {
+            "title": "15. Contact",
+            "paragraph1": "For any question regarding the website, its operation, your personal data, or these legal notices, you may contact the publisher at the following address:",
+            "paragraph1Strong": "[email address to be completed]"
+        }
+    },
+    "warning": {
+        "title": "Information to replace before going live",
+        "items": [
+            "Company or business name",
+            "Legal form",
+            "Name of the publishing manager",
+            "Postal address",
+            "Email address",
+            "SIREN / SIRET",
+            "VAT number if applicable",
+            "Full name and contact details of the hosting provider"
+        ]
+    },
+    "terms": {
+        "eyebrow": "Terms of Use",
+        "title": "General Terms of Use",
+        "intro": {
+            "paragraph1": "These general terms of use are intended to define the conditions for accessing and using the Ryvenox Empire website and game, as well as the rights and obligations of users.",
+            "paragraph2": "By accessing the website, creating an account, or using the available features, you fully and unreservedly accept these terms. If you do not accept these terms, you must stop using the website and its services."
+        },
+        "sections": {
+            "service": {
+                "title": "1. Purpose of the Service",
+                "paragraph1": "Ryvenox Empire is an idle / clicker online game in which users build a virtual startup, generate users, unlock upgrades, automate their progression, and compare their performance through a leaderboard.",
+                "paragraph2": "The website may also provide informational content, help pages, gameplay explanations, rankings, news, user account information, and, where applicable, advertising or promotional content."
+            },
+            "access": {
+                "title": "2. Access to the Website",
+                "paragraph1": "Access to the website is in principle available to any user with a compatible internet connection. Some services may require account creation, authentication, or compliance with minimum technical requirements.",
+                "paragraph2": "The publisher strives to ensure reasonable accessibility to the website but cannot guarantee permanent, continuous, and error-free availability. Access to the service may be suspended, limited, or interrupted at any time, particularly for maintenance, updates, technical fixes, or feature improvements."
+            },
+            "account": {
+                "title": "3. Account Creation",
+                "paragraph1": "Some features of the website require the creation of a personal account. The user agrees to provide accurate, up-to-date, and complete information during registration.",
+                "paragraph2": "The user is solely responsible for keeping their login credentials confidential and for the use of their account. Any activity carried out through the account is deemed to have been performed by the user, unless proven otherwise due to a malfunction attributable to the service.",
+                "paragraph3": "In the event of unauthorized access, suspected compromise, or loss of credentials, the user must immediately take appropriate measures, including changing their password and contacting the publisher if necessary."
+            },
+            "rules": {
+                "title": "4. Rules of Use",
+                "paragraph1": "The user agrees to use the website fairly, for its intended purpose, and in compliance with applicable laws and regulations.",
+                "items": [
+                    "not disrupt the proper functioning of the service;",
+                    "not attempt fraudulent access to systems, data, or other users’ accounts;",
+                    "not use scripts, bots, exploits, automated programs, or other improper means to manipulate progression or rankings;",
+                    "not bypass security, limitation, or protection mechanisms;",
+                    "not publish, transmit, or distribute unlawful, abusive, fraudulent, or harmful content;",
+                    "not infringe the intellectual property rights of the publisher or third parties."
+                ],
+                "paragraph2": "Any abusive, fraudulent, or game-spirit-violating use may result in moderation measures, restrictions, or account deletion, without prejudice to any additional action."
+            },
+            "gameplay": {
+                "title": "5. Gameplay, Balance, and Rankings",
+                "paragraph1": "Ryvenox Empire is based on mechanics involving progression, resource generation, upgrades, automation, and competition. The publisher reserves the right to modify the game’s parameters, values, balancing, progression speed, rewards, or ranking conditions at any time.",
+                "paragraph2": "Rankings are provided for informational purposes as part of competition and community engagement. The publisher does not guarantee the complete absence of errors, display delays, or temporary technical adjustments.",
+                "paragraph3": "In the event of cheating, exploit abuse, technical anomalies, or behavior compromising overall fairness, the publisher may correct data, adjust progression, remove a ranking position, or suspend an account."
+            },
+            "intellectualProperty": {
+                "title": "6. Intellectual Property",
+                "paragraph1": "All elements present on the website, including texts, interfaces, graphics, logos, trademarks, visual elements, content, software components, original presentation mechanics, and more generally the structure of the service, are protected by intellectual property law.",
+                "paragraph2": "Unless prior written authorization has been obtained, any reproduction, representation, adaptation, extraction, modification, distribution, or exploitation, in whole or in part, of any part of the website is prohibited."
+            },
+            "personalData": {
+                "title": "7. Personal Data",
+                "paragraph1": "The methods of collection and processing of personal data are described in the website’s Privacy Policy. Users are invited to consult it in order to understand which data is processed, for what purposes, and according to which legal bases or practical arrangements."
+            },
+            "ads": {
+                "title": "8. Advertising and Third-Party Services",
+                "paragraph1": "The website may display advertising content, notably through third-party partners. The display, targeting, audience measurement, or possible personalization of such advertising may involve the use of technologies such as cookies or other trackers, depending on the applicable consent settings.",
+                "paragraph2": "The website may also contain links to third-party services or websites. The publisher has no control over these external services and cannot be held responsible for their content, security, or their own policies."
+            },
+            "liability": {
+                "title": "9. Liability",
+                "paragraph1": "The publisher makes reasonable efforts to provide a reliable and secure service. However, it cannot guarantee that the website will be free from bugs, errors, interruptions, data loss, technical incompatibilities, or temporary incidents.",
+                "paragraph2": "The user acknowledges that they use the service under their own responsibility. The publisher cannot be held liable for indirect damages, loss of opportunity, data loss, operating losses, or harm resulting from the use of or inability to use the website, except where mandatory provisions provide otherwise."
+            },
+            "suspension": {
+                "title": "10. Account Suspension or Deletion",
+                "paragraph1": "The publisher reserves the right to suspend, restrict, or delete access to all or part of the service in the event of non-compliance with these terms, attempted fraud, behavior affecting the proper functioning of the website, or legal obligation.",
+                "paragraph2": "Depending on the seriousness of the situation, such measures may be taken without prior notice when necessary for the security, integrity of the service, or protection of other users."
+            },
+            "modification": {
+                "title": "11. Modification of the Terms",
+                "paragraph1": "These terms may be modified at any time in order to reflect changes in the service, legal requirements, technical developments, or new features.",
+                "paragraph2": "The applicable version is the one published on the website at the time of consultation. It is the user’s responsibility to review them regularly."
+            },
+            "applicableLaw": {
+                "title": "12. Governing Law",
+                "paragraph1": "These terms are governed by the law applicable at the publisher’s place of establishment, subject to any mandatory provisions that may apply to the user as a consumer.",
+                "paragraph2": "In the event of a dispute, an amicable solution will be sought as a priority before any legal proceedings, whenever possible."
+            }
+        },
+        "footer": {
+            "lastUpdate": "Last update: to be completed according to the effective publication date."
+        }
+    },
+    "privacy": {
+        "eyebrow": "Privacy",
+        "title": "Privacy Policy",
+        "intro": {
+            "paragraph1": "This privacy policy is intended to clearly inform you about how your data may be collected, used, stored, and protected when using the Ryvenox Empire website and game.",
+            "paragraph2": "We attach importance to the protection of your personal data and strive to limit collection to the information strictly necessary for the operation of the service, the improvement of the user experience, the security of the website, and, where applicable, the delivery of advertising content."
+        },
+        "sections": {
+            "dataCollected": {
+                "title": "1. Data That May Be Collected",
+                "paragraph1": "Depending on how you use the website, we may process different categories of data, including:",
+                "items": [
+                    "account data, such as an email address;",
+                    "technical data, such as IP address, browser, device type, or access logs;",
+                    "data related to gameplay, such as your progression, scores, statistics, or leaderboard position;",
+                    "audience measurement and browsing data;",
+                    "data relating to consent or privacy preferences;",
+                    "data from cookies or similar technologies, depending on your choices and the website configuration."
+                ]
+            },
+            "purposes": {
+                "title": "2. Purposes of Processing",
+                "paragraph1": "The data may be used for the following purposes:",
+                "items": [
+                    "to enable the creation and management of user accounts;",
+                    "to ensure the operation of the game and the saving of progression;",
+                    "to display leaderboards and competitive features;",
+                    "to secure the website and detect abuse, fraud, or cheating;",
+                    "to measure traffic and improve service performance;",
+                    "to respond to contact or support requests;",
+                    "to comply with legal obligations;",
+                    "where applicable, to display advertising, measure its effectiveness, and adapt certain advertising content in accordance with applicable rules and consent choices."
+                ]
+            },
+            "legalBasis": {
+                "title": "3. Legal Basis",
+                "paragraph1": "Data processing may rely on different legal bases depending on its nature, including:",
+                "items": [
+                    "the performance of the service requested by the user;",
+                    "the legitimate interest related to security, service improvement, and fraud prevention;",
+                    "compliance with legal obligations;",
+                    "consent, in particular where required for certain cookies or advertising-related processing."
+                ]
+            },
+            "cookies": {
+                "title": "4. Cookies and Trackers",
+                "paragraph1": "The website may use cookies or similar technologies to ensure proper operation, remember certain preferences, measure audience, improve user experience, and, where applicable, display advertising.",
+                "paragraph2": "Some cookies may be strictly necessary for the technical functioning of the website. Others, particularly those related to audience measurement or personalized advertising, may require your consent under the regulations applicable in your country or geographic area.",
+                "paragraph3": "You may manage your cookie preferences at any time through the tools made available on the website, when present, or through your browser settings."
+            },
+            "ads": {
+                "title": "5. Advertising and Google AdSense",
+                "paragraph1": "The website may use advertising partners, including Google AdSense, to display ads. These partners may use cookies or similar identifiers to serve advertising, limit ad repetition, measure performance, or, where authorized, personalize advertising content.",
+                "paragraph2": "Where applicable, users located in certain regions, including the European Economic Area, the United Kingdom, or Switzerland, may be offered a consent management mechanism to choose the use of certain advertising technologies.",
+                "paragraph3": "Third-party vendors, including Google, may use cookies to serve ads based on a user’s previous visits to this website or other websites."
+            },
+            "recipients": {
+                "title": "6. Data Recipients",
+                "paragraph1": "Processed data may be accessible, to the extent necessary, to:",
+                "items": [
+                    "the website publisher and persons authorized to manage it;",
+                    "technical service providers involved in hosting, databases, security, or the proper functioning of the service;",
+                    "audience measurement providers;",
+                    "advertising partners, subject to applicable settings;",
+                    "administrative or judicial authorities where required by law."
+                ]
+            },
+            "retention": {
+                "title": "7. Retention Period",
+                "paragraph1": "Data is retained for a period proportionate to its purpose. Some data may be kept as long as the account remains active. Other data may be deleted more quickly or archived for a longer period where necessary to comply with legal, accounting, tax, security, or evidentiary obligations.",
+                "paragraph2": "Cookies have a lifespan that varies depending on their nature. Preferences and consents may also be retained to demonstrate compliance with applicable obligations."
+            },
+            "security": {
+                "title": "8. Security",
+                "paragraph1": "We implement reasonable technical and organizational measures to protect data against unauthorized access, disclosure, alteration, loss, or destruction. However, as no system is completely infallible, absolute security cannot be guaranteed."
+            },
+            "rights": {
+                "title": "9. Your Rights",
+                "paragraph1": "Depending on the applicable regulations, you may have rights relating to your personal data, including:",
+                "items": [
+                    "right of access;",
+                    "right to rectification;",
+                    "right to erasure;",
+                    "right to restriction;",
+                    "right to object, where applicable;",
+                    "right to data portability, where applicable;",
+                    "right to withdraw your consent at any time for processing based on it."
+                ],
+                "paragraph2": "To exercise your rights, you may use the contact details indicated on the contact page or in the legal notice, attaching any useful information that may help process your request."
+            },
+            "minors": {
+                "title": "10. Minors’ Data",
+                "paragraph1": "The website is not intended to knowingly collect personal data from very young children without an appropriate legal framework. If you believe data has been provided inappropriately, you may contact the publisher so that verification can be carried out."
+            },
+            "changes": {
+                "title": "11. Policy Changes",
+                "paragraph1": "This privacy policy may be modified at any time to reflect technical, legal, or functional developments. The version published on the website is the one applicable at the time of your consultation."
+            }
+        },
+        "footer": {
+            "lastUpdate": "Last update: to be completed according to the effective publication date."
+        }
+    }
 }
