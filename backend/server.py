@@ -340,23 +340,34 @@ def get_daily_bonus_status(stats: PlayerStats) -> dict:
 # ===========================================
 # GAME LOGIC HELPERS
 # ===========================================
-async def get_or_create_player_stats(db: AsyncSession, user_id: str) -> PlayerStats:
-    result = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user_id))
+async def get_or_create_player_stats(db: AsyncSession, user_id) -> PlayerStats:
+    result = await db.execute(
+        select(PlayerStats).where(PlayerStats.user_id == user_id)
+    )
     stats = result.scalar_one_or_none()
-    
+
     if not stats:
         stats = PlayerStats(user_id=user_id)
         db.add(stats)
         await db.commit()
         await db.refresh(stats)
-        
-        result = await db.execute(select(Upgrade))
-        upgrades = result.scalars().all()
-        for upgrade in upgrades:
-            player_upgrade = PlayerUpgrade(user_id=user_id, upgrade_id=upgrade.id, level=0)
-            db.add(player_upgrade)
+
+    result = await db.execute(select(Upgrade.id))
+    all_upgrade_ids = set(result.scalars().all())
+
+    result = await db.execute(
+        select(PlayerUpgrade.upgrade_id).where(PlayerUpgrade.user_id == user_id)
+    )
+    existing_upgrade_ids = set(result.scalars().all())
+
+    missing_upgrade_ids = all_upgrade_ids - existing_upgrade_ids
+
+    for upgrade_id in missing_upgrade_ids:
+        db.add(PlayerUpgrade(user_id=user_id, upgrade_id=upgrade_id, level=0))
+
+    if missing_upgrade_ids:
         await db.commit()
-        
+
     return stats
 
 async def recalculate_passive_income(db: AsyncSession, stats: PlayerStats) -> tuple[PlayerStats, float]:
@@ -566,67 +577,91 @@ async def click(request: Request, user: User = Depends(get_current_user), db: As
 
 @game_router.post("/buy-upgrade")
 @limiter.limit("60/minute")
-async def buy_upgrade(request: Request, data: BuyUpgradeRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    upgrade_id = data.upgrade_id
-    
-    # Validate upgrade exists
-    if upgrade_id not in VALID_UPGRADE_IDS:
+async def buy_upgrade(
+    request: Request,
+    data: BuyUpgradeRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        upgrade_id = data.upgrade_id
+
+        if upgrade_id not in VALID_UPGRADE_IDS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid upgrade"
+            )
+
+        result = await db.execute(select(Upgrade).where(Upgrade.id == upgrade_id))
+        upgrade = result.scalar_one_or_none()
+        if not upgrade:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Upgrade not found"
+            )
+
+        stats = await get_or_create_player_stats(db, user.id)
+        stats, _ = await recalculate_passive_income(db, stats)
+
+        result = await db.execute(
+            select(PlayerUpgrade).where(
+                PlayerUpgrade.user_id == user.id,
+                PlayerUpgrade.upgrade_id == upgrade_id
+            )
+        )
+        player_upgrade = result.scalar_one_or_none()
+        current_level = player_upgrade.level if player_upgrade else 0
+
+        cost = calculate_upgrade_cost(upgrade.base_cost, current_level)
+
+        if stats.current_users < cost:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Not enough users. Need {cost:.2f}, have {stats.current_users:.2f}"
+            )
+
+        stats.current_users -= cost
+
+        if player_upgrade:
+            player_upgrade.level += 1
+            new_level = player_upgrade.level
+        else:
+            player_upgrade = PlayerUpgrade(
+                user_id=user.id,
+                upgrade_id=upgrade_id,
+                level=1
+            )
+            db.add(player_upgrade)
+            new_level = 1
+
+        await db.commit()
+        await recalculate_player_stats(db, user.id)
+
+        result = await db.execute(
+            select(PlayerStats).where(PlayerStats.user_id == user.id)
+        )
+        updated_stats = result.scalar_one()
+
+        return {
+            "success": True,
+            "upgrade_id": upgrade_id,
+            "upgrade_name": upgrade.name,
+            "new_level": new_level,
+            "cost": cost,
+            "current_users": round(stats.current_users, 2),
+            "click_power": updated_stats.click_power,
+            "passive_income": updated_stats.passive_income
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.exception("BUY_UPGRADE ERROR user=%s upgrade=%s", user.id, data.upgrade_id)
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid upgrade"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
         )
-    
-    result = await db.execute(select(Upgrade).where(Upgrade.id == upgrade_id))
-    upgrade = result.scalar_one_or_none()
-    if not upgrade:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upgrade not found")
-    
-    stats = await get_or_create_player_stats(db, user.id)
-    stats, _ = await recalculate_passive_income(db, stats)
-    
-    result = await db.execute(
-        select(PlayerUpgrade).where(
-            PlayerUpgrade.user_id == user.id,
-            PlayerUpgrade.upgrade_id == upgrade_id
-        )
-    )
-    player_upgrade = result.scalar_one_or_none()
-    current_level = player_upgrade.level if player_upgrade else 0
-    
-    cost = calculate_upgrade_cost(upgrade.base_cost, current_level)
-    
-    if stats.current_users < cost:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Not enough users. Need {cost:.0f}, have {stats.current_users:.0f}"
-        )
-    
-    stats.current_users -= cost
-    
-    if player_upgrade:
-        player_upgrade.level += 1
-        new_level = player_upgrade.level
-    else:
-        player_upgrade = PlayerUpgrade(user_id=user.id, upgrade_id=upgrade_id, level=1)
-        db.add(player_upgrade)
-        new_level = 1
-    
-    await db.commit()
-    await recalculate_player_stats(db, user.id)
-    
-    result = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user.id))
-    updated_stats = result.scalar_one()
-    
-    return {
-        "success": True,
-        "upgrade_id": upgrade_id,
-        "upgrade_name": upgrade.name,
-        "new_level": new_level,
-        "cost": cost,
-        "current_users": round(stats.current_users, 2),
-        "click_power": updated_stats.click_power,
-        "passive_income": updated_stats.passive_income
-    }
 
 # ===========================================
 # LEADERBOARD ROUTES

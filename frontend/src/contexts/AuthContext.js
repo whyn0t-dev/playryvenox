@@ -30,17 +30,24 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     const getProfile = useCallback(async (authUser) => {
-        if (!authUser) return false;
+        if (!authUser) return null;
 
         const { data, error } = await supabase
             .from('users')
             .select('id, email, username, role, created_at')
             .eq('id', authUser.id)
-            .single();
+            .maybeSingle();
 
         if (error) throw error;
         return data;
     }, []);
+
+    const buildFallbackUser = (authUser) => ({
+        id: authUser.id,
+        email: authUser.email,
+        username: authUser.user_metadata?.username ?? null,
+        role: 'player'
+    });
 
     const loadCurrentUser = useCallback(async () => {
         try {
@@ -56,10 +63,27 @@ export function AuthProvider({ children }) {
                 return false;
             }
 
-            const profile = await getProfile(session.user);
-            setUser(profile);
+            try {
+                const profile = await getProfile(session.user);
+                setUser(profile ?? {
+                    id: session.user.id,
+                    email: session.user.email,
+                    username: session.user.user_metadata?.username ?? null,
+                    role: 'player'
+                });
+            } catch (profileError) {
+                console.error('getProfile failed:', profileError);
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    username: session.user.user_metadata?.username ?? null,
+                    role: 'player'
+                });
+            }
+
             return true;
         } catch (error) {
+            console.error('loadCurrentUser error:', error);
             setUser(false);
             return false;
         } finally {
@@ -73,7 +97,6 @@ export function AuthProvider({ children }) {
         const {
             data: { subscription }
         } = supabase.auth.onAuthStateChange((event, session) => {
-            // Éviter les appels async Supabase directement dans ce callback
             setTimeout(async () => {
                 try {
                     if (!session?.user) {
@@ -82,9 +105,25 @@ export function AuthProvider({ children }) {
                         return;
                     }
 
-                    const profile = await getProfile(session.user);
-                    setUser(profile);
+                    try {
+                        const profile = await getProfile(session.user);
+                        setUser(profile ?? {
+                            id: session.user.id,
+                            email: session.user.email,
+                            username: session.user.user_metadata?.username ?? null,
+                            role: 'player'
+                        });
+                    } catch (profileError) {
+                        console.error('onAuthStateChange getProfile error:', profileError);
+                        setUser({
+                            id: session.user.id,
+                            email: session.user.email,
+                            username: session.user.user_metadata?.username ?? null,
+                            role: 'player'
+                        });
+                    }
                 } catch (error) {
+                    console.error('onAuthStateChange error:', error);
                     setUser(false);
                 } finally {
                     setLoading(false);
@@ -114,9 +153,9 @@ export function AuthProvider({ children }) {
             }
 
             const profile = await getProfile(data.user);
-            setUser(profile);
-
-            return { success: true, user: profile };
+            const resolvedUser = profile ?? buildFallbackUser(data.user);
+            setUser(resolvedUser);
+            return { success: true, user: resolvedUser };
         } catch (error) {
             let message = formatApiErrorDetail(error.message || error);
 
@@ -158,12 +197,19 @@ export function AuthProvider({ children }) {
             // Si session immédiate disponible
             try {
                 const profile = await getProfile(data.user);
-                setUser(profile);
-                return { success: true, user: profile };
-            } catch {
+                const resolvedUser = profile ?? buildFallbackUser(data.user);
+                setUser(resolvedUser);
+
+                return { success: true, user: resolvedUser };
+            } catch (profileError) {
+                console.error('register getProfile error:', profileError);
+
+                const fallbackUser = buildFallbackUser(data.user);
+                setUser(fallbackUser);
+
                 return {
                     success: true,
-                    user: null,
+                    user: fallbackUser,
                     message: "Account created successfully."
                 };
             }
