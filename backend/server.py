@@ -238,16 +238,16 @@ class TransferUsersRequest(BaseModel):
 # GAME CONSTANTS
 # ===========================================
 INITIAL_UPGRADES = [
-    {"id": "landing_page", "name": "Landing Page", "type": "click", "effect": 1, "base_cost": 15, "description": "+1 per click", "sort_order": 1},
-    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 100, "description": "+2 per click", "sort_order": 2},
-    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 5, "base_cost": 500, "description": "+5 per click", "sort_order": 3},
-    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 10, "base_cost": 2000, "description": "+10 per click", "sort_order": 4},
-    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 25, "base_cost": 10000, "description": "+25 per click", "sort_order": 5},
-    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 25, "description": "+1/sec", "sort_order": 6},
-    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 5, "base_cost": 200, "description": "+5/sec", "sort_order": 7},
-    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 20, "base_cost": 1000, "description": "+20/sec", "sort_order": 8},
-    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 75, "base_cost": 5000, "description": "+75/sec", "sort_order": 9},
-    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 250, "base_cost": 25000, "description": "+250/sec", "sort_order": 10},
+    {"id": "landing_page", "name": "Landing Page", "type": "click", "effect": 1, "base_cost": 100, "description": "+1 per click", "sort_order": 1},
+    {"id": "email_capture", "name": "Email Capture", "type": "click", "effect": 2, "base_cost": 2500, "description": "+2 per click", "sort_order": 2},
+    {"id": "growth_copywriting", "name": "Growth Copywriting", "type": "click", "effect": 4, "base_cost": 50000, "description": "+4 per click", "sort_order": 3},
+    {"id": "paid_ads", "name": "Paid Ads", "type": "click", "effect": 8, "base_cost": 2500000, "description": "+8 per click", "sort_order": 4},
+    {"id": "viral_referral", "name": "Viral Referral Loop", "type": "click", "effect": 15, "base_cost": 250000000, "description": "+15 per click", "sort_order": 5},
+    {"id": "intern", "name": "Intern", "type": "passive", "effect": 1, "base_cost": 500, "description": "+1/sec", "sort_order": 6},
+    {"id": "automation_bot", "name": "Automation Bot", "type": "passive", "effect": 3, "base_cost": 25000, "description": "+3/sec", "sort_order": 7},
+    {"id": "ai_agent", "name": "AI Agent", "type": "passive", "effect": 10, "base_cost": 2500000, "description": "+10/sec", "sort_order": 8},
+    {"id": "cloud_infra", "name": "Cloud Infrastructure", "type": "passive", "effect": 30, "base_cost": 500000000, "description": "+30/sec", "sort_order": 9},
+    {"id": "global_expansion", "name": "Global Expansion", "type": "passive", "effect": 100, "base_cost": 100000000000, "description": "+100/sec", "sort_order": 10},
 ]
 
 VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
@@ -257,8 +257,8 @@ VALID_UPGRADE_IDS = {u["id"] for u in INITIAL_UPGRADES}
 # ===========================================
 TRANSFER_MAX_AMOUNT = 1000
 TRANSFER_WINDOW_DAYS = 5
-TRANSFER_FEE_PERCENT = 0.10  # 10%
-TRANSFER_MIN_LEVEL = 3
+TRANSFER_FEE_PERCENT = 0.30  # 30%
+TRANSFER_MIN_LEVEL = 500
 
 def calculate_upgrade_cost(base_cost: float, level: int) -> float:
     return round(base_cost * (1.65 ** level), 2)
