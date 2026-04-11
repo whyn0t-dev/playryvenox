@@ -1,11 +1,21 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
-import { Zap, Trophy, User, LogOut, Menu, X, Languages } from "lucide-react";
+import {
+  Zap,
+  Trophy,
+  User,
+  LogOut,
+  Menu,
+  X,
+  Languages,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function Navbar() {
+export default function Navbar({ soundEnabled, toggleSound }) {
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,6 +106,21 @@ export default function Navbar() {
             <Button
               variant="outline"
               size="sm"
+              onClick={toggleSound}
+              className="rounded-sm"
+              data-testid="nav-sound-btn"
+              aria-label={soundEnabled ? "Couper le son" : "Activer le son"}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4" />
+              ) : (
+                <VolumeX className="w-4 h-4" />
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={toggleLanguage}
               className="rounded-sm"
               data-testid="nav-language-btn"
@@ -171,6 +196,21 @@ export default function Navbar() {
                 <span className="flex items-center gap-2">
                   <Languages className="w-4 h-4" />
                   {currentLanguage === "fr" ? "Switch to English" : "Passer en français"}
+                </span>
+              </button>
+
+              <button
+                onClick={toggleSound}
+                className="px-4 py-2 text-left text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                data-testid="mobile-sound-btn"
+              >
+                <span className="flex items-center gap-2">
+                  {soundEnabled ? (
+                    <Volume2 className="w-4 h-4" />
+                  ) : (
+                    <VolumeX className="w-4 h-4" />
+                  )}
+                  {soundEnabled ? "Couper le son" : "Activer le son"}
                 </span>
               </button>
 

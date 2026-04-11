@@ -2,6 +2,7 @@ import "@/App.css";
 import "@/i18n";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/sonner";
 import Navbar from "./components/Navbar";
@@ -20,15 +21,36 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import LegalNoticePage from "./pages/LegalNoticePage";
 import Footer from "./components/Footer";
+import GlobalAudio from "./components/GlobalAudio";
 
 function App() {
+  const [soundEnabled, setSoundEnabled] = useState(false);
+
+  useEffect(() => {
+    const savedSound = localStorage.getItem("soundEnabled");
+    if (savedSound !== null) {
+      setSoundEnabled(savedSound === "true");
+    }
+  }, []);
+
+  const toggleSound = () => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem("soundEnabled", String(next));
+      return next;
+    });
+  };
+
   return (
     <AuthProvider>
       <div className="App min-h-screen bg-background text-foreground">
         <div className="app-background" />
         <BrowserRouter>
-          <Navbar />
+          <Navbar soundEnabled={soundEnabled} toggleSound={toggleSound} />
+
           <main>
+            <GlobalAudio enabled={soundEnabled} />
+
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -60,8 +82,10 @@ function App() {
               />
             </Routes>
           </main>
+
           <Footer />
         </BrowserRouter>
+
         <Toaster position="bottom-right" />
       </div>
     </AuthProvider>

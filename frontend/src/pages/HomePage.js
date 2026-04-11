@@ -92,7 +92,7 @@ export default function HomePage() {
                             </span>
                         </div>
 
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter mb-6 text-glow-strong leading-none">
+                        <h1 className="hero-shine text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-none">
                             {t("home.hero.title.line1")}
                             <br />
                             <span className="text-primary">{t("home.hero.title.line2")}</span>
@@ -256,7 +256,7 @@ export default function HomePage() {
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                         <div className="stats-card">
                             <div className="w-12 h-12 bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 rounded-sm">
@@ -526,12 +526,12 @@ export default function HomePage() {
                                         <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
                                             <td
                                                 className={`font-mono font-bold ${player.rank === 1
-                                                        ? "rank-1"
-                                                        : player.rank === 2
-                                                            ? "rank-2"
-                                                            : player.rank === 3
-                                                                ? "rank-3"
-                                                                : ""
+                                                    ? "rank-1"
+                                                    : player.rank === 2
+                                                        ? "rank-2"
+                                                        : player.rank === 3
+                                                            ? "rank-3"
+                                                            : ""
                                                     }`}
                                             >
                                                 #{player.rank}
