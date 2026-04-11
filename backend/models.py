@@ -5,27 +5,42 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
+
 def utc_now():
     return datetime.now(timezone.utc)
 
+
 class User(Base):
-    __tablename__ = 'users'
-    
+    __tablename__ = "users"
+
     id = Column(UUID(as_uuid=True), primary_key=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
-    role = Column(String(50), default='player')
+    role = Column(String(50), default="player")
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
-    player_stats = relationship('PlayerStats', back_populates='user', uselist=False, cascade='all, delete-orphan')
-    player_upgrades = relationship('PlayerUpgrade', back_populates='user', cascade='all, delete-orphan')
+    player_stats = relationship(
+        "PlayerStats",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    player_upgrades = relationship(
+        "PlayerUpgrade", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class PlayerStats(Base):
-    __tablename__ = 'player_stats'
-    
+    __tablename__ = "player_stats"
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
     current_users = Column(Float, default=0)
     total_users_generated = Column(Float, default=0, index=True)
     click_power = Column(Integer, default=1)
@@ -38,12 +53,12 @@ class PlayerStats(Base):
     daily_streak = Column(Integer, default=0)
     total_daily_claims = Column(Integer, default=0)
 
-    user = relationship('User', back_populates='player_stats')
+    user = relationship("User", back_populates="player_stats")
 
 
 class Upgrade(Base):
-    __tablename__ = 'upgrades'
-    
+    __tablename__ = "upgrades"
+
     id = Column(String(50), primary_key=True)
     name = Column(String(100), nullable=False)
     type = Column(String(20), nullable=False, index=True)
@@ -52,30 +67,51 @@ class Upgrade(Base):
     description = Column(String(255))
     sort_order = Column(Integer, default=0)
 
-    player_upgrades = relationship('PlayerUpgrade', back_populates='upgrade')
+    player_upgrades = relationship("PlayerUpgrade", back_populates="upgrade")
 
 
 class PlayerUpgrade(Base):
-    __tablename__ = 'player_upgrades'
-    
+    __tablename__ = "player_upgrades"
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    upgrade_id = Column(String(50), ForeignKey('upgrades.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    upgrade_id = Column(
+        String(50),
+        ForeignKey("upgrades.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     level = Column(Integer, default=0)
 
-    user = relationship('User', back_populates='player_upgrades')
-    upgrade = relationship('Upgrade', back_populates='player_upgrades')
+    user = relationship("User", back_populates="player_upgrades")
+    upgrade = relationship("Upgrade", back_populates="player_upgrades")
 
     __table_args__ = (
-        Index('idx_player_upgrade_user_upgrade', 'user_id', 'upgrade_id', unique=True),
+        Index("idx_player_upgrade_user_upgrade", "user_id", "upgrade_id", unique=True),
     )
 
+
 class UserTransfer(Base):
-    __tablename__ = 'user_transfers'
+    __tablename__ = "user_transfers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    sender_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    recipient_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    sender_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    recipient_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     amount_sent = Column(Float, nullable=False)
     fee_amount = Column(Float, default=0, nullable=False)
@@ -83,10 +119,45 @@ class UserTransfer(Base):
 
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
-    sender = relationship('User', foreign_keys=[sender_id], backref='sent_transfers')
-    recipient = relationship('User', foreign_keys=[recipient_id], backref='received_transfers')
+    sender = relationship("User", foreign_keys=[sender_id], backref="sent_transfers")
+    recipient = relationship(
+        "User", foreign_keys=[recipient_id], backref="received_transfers"
+    )
 
     __table_args__ = (
-        Index('idx_user_transfers_sender_created', 'sender_id', 'created_at'),
-        Index('idx_user_transfers_recipient_created', 'recipient_id', 'created_at'),
+        Index("idx_user_transfers_sender_created", "sender_id", "created_at"),
+        Index("idx_user_transfers_recipient_created", "recipient_id", "created_at"),
     )
+
+
+class BaseBuilding(Base):
+    __tablename__ = "base_buildings"
+
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        primary_key=True,
+        nullable=False,
+    )
+    grid_x = Column(Integer, primary_key=True, nullable=False)
+    grid_y = Column(Integer, primary_key=True, nullable=False)
+
+    building_type = Column(String, nullable=False)
+    level = Column(Integer, default=1, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class BaseStats(Base):
+    __tablename__ = "base_stats"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
+
+    grid_width = Column(Integer, default=10)
+    grid_height = Column(Integer, default=10)
+
+    stored_users = Column(Float, default=0)
+    production_per_hour = Column(Float, default=0)
+    storage_capacity = Column(Float, default=1000)
+
+    last_collected_at = Column(DateTime, default=datetime.utcnow)

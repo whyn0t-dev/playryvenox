@@ -23,7 +23,11 @@ from typing import List, Optional
 from database import get_db, engine, Base, AsyncSessionLocal
 from models import User, PlayerStats, Upgrade, PlayerUpgrade, UserTransfer
 
-from supabase import create_client, Client
+# from supabase import create_client, Client
+
+# Ajout des dépendances de dependencies.py
+from dependencies import get_current_user, supabase
+from base import base_router
 
 import uuid
 
@@ -33,13 +37,13 @@ import uuid
 ENVIRONMENT = os.environ.get("ENV", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+# SUPABASE_URL = os.environ.get("SUPABASE_URL")
+# SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
-if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-    raise ValueError("Missing Supabase config")
+# if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+#     raise ValueError("Missing Supabase config")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+# supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -78,94 +82,94 @@ def validate_username(username: str) -> tuple[bool, str]:
 # AUTH DEPENDENCY
 # ===========================================
 
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
-    auth_header = request.headers.get("Authorization", "")
+# async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
+#     auth_header = request.headers.get("Authorization", "")
 
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
-        )
+#     if not auth_header.startswith("Bearer "):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authentication required"
+#         )
 
-    token = auth_header[7:].strip()
+#     token = auth_header[7:].strip()
 
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
-        )
+#     if not token:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authentication required"
+#         )
 
-    try:
-        user_response = supabase.auth.get_user(token)
-        user_data = user_response.user
+#     try:
+#         user_response = supabase.auth.get_user(token)
+#         user_data = user_response.user
 
-        if not user_data or not user_data.email:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication token"
-            )
+#         if not user_data or not user_data.email:
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Invalid authentication token"
+#             )
 
-        # 🔑 On cherche par ID (correct)
-        supabase_user_id = uuid.UUID(user_data.id)
-        result = await db.execute(
-            select(User).where(User.id == supabase_user_id)
-        )
-        user = result.scalar_one_or_none()
+#         # 🔑 On cherche par ID (correct)
+#         supabase_user_id = uuid.UUID(user_data.id)
+#         result = await db.execute(
+#             select(User).where(User.id == supabase_user_id)
+#         )
+#         user = result.scalar_one_or_none()
 
-        # ✅ Si user existe → update email si besoin
-        if user:
-            if user.email != user_data.email.lower():
-                user.email = user_data.email.lower()
-                await db.commit()
-                await db.refresh(user)
+#         # ✅ Si user existe → update email si besoin
+#         if user:
+#             if user.email != user_data.email.lower():
+#                 user.email = user_data.email.lower()
+#                 await db.commit()
+#                 await db.refresh(user)
 
-            return user
+#             return user
 
-        # 🚀 Création user si inexistant
-        base_username = (
-            (user_data.user_metadata or {}).get("username")
-            or user_data.email.split("@")[0]
-        )
+#         # 🚀 Création user si inexistant
+#         base_username = (
+#             (user_data.user_metadata or {}).get("username")
+#             or user_data.email.split("@")[0]
+#         )
 
-        username = re.sub(r"[^a-zA-Z0-9_]", "_", base_username)[:30] or "player"
+#         username = re.sub(r"[^a-zA-Z0-9_]", "_", base_username)[:30] or "player"
 
-        candidate = username
-        suffix = 1
+#         candidate = username
+#         suffix = 1
 
-        while True:
-            existing = await db.execute(
-                select(User).where(User.username == candidate)
-            )
-            existing_user = existing.scalar_one_or_none()
+#         while True:
+#             existing = await db.execute(
+#                 select(User).where(User.username == candidate)
+#             )
+#             existing_user = existing.scalar_one_or_none()
 
-            if not existing_user:
-                break
+#             if not existing_user:
+#                 break
 
-            suffix_str = str(suffix)
-            candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
-            suffix += 1
+#             suffix_str = str(suffix)
+#             candidate = f"{username[:30-len(suffix_str)-1]}_{suffix_str}"
+#             suffix += 1
 
-        user = User(
-            id=supabase_user_id,
-            email=user_data.email.lower(),
-            username=candidate,
-            role="player"
-        )
+#         user = User(
+#             id=supabase_user_id,
+#             email=user_data.email.lower(),
+#             username=candidate,
+#             role="player"
+#         )
 
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
+#         db.add(user)
+#         await db.commit()
+#         await db.refresh(user)
 
-        return user
+#         return user
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        print("AUTH ERROR:", repr(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error during user sync"
-        )
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         print("AUTH ERROR:", repr(e))
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail="Internal server error during user sync"
+#         )
 
 # ===========================================
 # PYDANTIC MODELS WITH VALIDATION
@@ -1027,6 +1031,7 @@ api_router.include_router(auth_router)
 api_router.include_router(game_router)
 api_router.include_router(daily_router)
 api_router.include_router(transfer_router)
+api_router.include_router(base_router)
 app.include_router(api_router)
 
 # ===========================================

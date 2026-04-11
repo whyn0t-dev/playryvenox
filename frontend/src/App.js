@@ -23,6 +23,8 @@ import LegalNoticePage from "./pages/LegalNoticePage";
 import Footer from "./components/Footer";
 import GlobalAudio from "./components/GlobalAudio";
 
+import BasePage from "./pages/BasePage"
+
 function App() {
   const [soundEnabled, setSoundEnabled] = useState(false);
 
@@ -63,6 +65,14 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/legal-notice" element={<LegalNoticePage />} />
+              <Route
+                path="/base"
+                element={
+                  <ProtectedRoute>
+                    <BasePage />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route
                 path="/game"

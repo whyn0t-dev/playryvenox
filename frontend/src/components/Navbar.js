@@ -41,9 +41,9 @@ export default function Navbar({ soundEnabled, toggleSound }) {
 
   const navLinkClass = (path) => `
         px-4 py-2 font-medium transition-colors duration-200
-        ${isActive(path) 
-            ? "text-primary" 
-            : "text-muted-foreground hover:text-foreground"}
+        ${isActive(path)
+      ? "text-primary"
+      : "text-muted-foreground hover:text-foreground"}
     `;
 
   return (
@@ -62,6 +62,11 @@ export default function Navbar({ soundEnabled, toggleSound }) {
           <div className="hidden md:flex items-center gap-1">
             {isAuthenticated && (
               <>
+                <Link to="/base" className={navLinkClass("/base")} data-testid="nav-base">
+                  <span className="flex items-center gap-1">
+                    🏗 Base
+                  </span>
+                </Link>
                 <Link to="/game" className={navLinkClass("/game")} data-testid="nav-game">
                   {t("navbar.play")}
                 </Link>
@@ -216,6 +221,13 @@ export default function Navbar({ soundEnabled, toggleSound }) {
 
               {isAuthenticated ? (
                 <>
+                  <Link
+                    to="/base"
+                    className={navLinkClass("/base")}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Base
+                  </Link>
                   <Link
                     to="/game"
                     className={navLinkClass("/game")}
