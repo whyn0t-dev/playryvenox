@@ -14,37 +14,37 @@ export default function LeaderboardPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(`${API}/leaderboard?page=${page}&limit=20`);
-        const data = response.data;
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/leaderboard?page=${page}&limit=20`);
+      const data = response.data;
 
-        if (data && Array.isArray(data.players)) {
-          setPlayers(data.players);
-          setTotalPages(data.pages || 1);
-          setTotal(data.total || 0);
-        } else if (Array.isArray(data)) {
-          setPlayers(data);
-          setTotalPages(1);
-          setTotal(data.length);
-        } else {
-          console.error("Unexpected leaderboard response format:", data);
-          setPlayers([]);
-          setTotalPages(1);
-          setTotal(0);
-        }
-      } catch (error) {
-        console.error("Error fetching leaderboard:", error);
+      if (data && Array.isArray(data.players)) {
+        setPlayers(data.players);
+        setTotalPages(data.pages || 1);
+        setTotal(data.total || 0);
+      } else if (Array.isArray(data)) {
+        setPlayers(data);
+        setTotalPages(1);
+        setTotal(data.length);
+      } else {
+        console.error("Unexpected leaderboard response format:", data);
         setPlayers([]);
         setTotalPages(1);
         setTotal(0);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      setPlayers([]);
+      setTotalPages(1);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLeaderboard();
   }, [page]);
 
@@ -68,6 +68,14 @@ export default function LeaderboardPage() {
           <p className="text-muted-foreground mt-2">
             {t("leaderboard.subtitle", { total })}
           </p>
+          <Button
+            variant="outline"
+            onClick={fetchLeaderboard}
+            disabled={loading}
+            className="rounded-sm mt-4"
+          >
+            Actualiser
+          </Button>
         </div>
 
         <div className="stats-card overflow-hidden p-4 sm:p-6">
@@ -99,15 +107,14 @@ export default function LeaderboardPage() {
                       player && (
                         <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
                           <td
-                            className={`font-mono font-bold text-xl ${
-                              player.rank === 1
-                                ? "rank-1"
-                                : player.rank === 2
+                            className={`font-mono font-bold text-xl ${player.rank === 1
+                              ? "rank-1"
+                              : player.rank === 2
                                 ? "rank-2"
                                 : player.rank === 3
-                                ? "rank-3"
-                                : ""
-                            }`}
+                                  ? "rank-3"
+                                  : ""
+                              }`}
                           >
                             {player.rank === 1 && "🥇 "}
                             {player.rank === 2 && "🥈 "}
