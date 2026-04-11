@@ -144,6 +144,7 @@ class BaseBuilding(Base):
 
     building_type = Column(String, nullable=False)
     level = Column(Integer, default=1, nullable=False)
+    rotation = Column(Integer, default=0, nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

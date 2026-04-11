@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { motion } from "framer-motion-3d";
+import * as THREE from "three";
 
 function Tile({ x, z, hasBuilding, onClick, onPointerEnter, onPointerLeave }) {
   return (
@@ -17,7 +17,33 @@ function Tile({ x, z, hasBuilding, onClick, onPointerEnter, onPointerLeave }) {
   );
 }
 
-function Building({ x, z, type }) {
+function WallModel({ connections }) {
+  const { top, bottom, left, right } = connections;
+
+  if (top && right && !left && !bottom) {
+    return (
+      <group>
+        <mesh position={[0, 0.25, -0.2]}>
+          <boxGeometry args={[0.2, 0.5, 0.6]} />
+          <meshStandardMaterial color="#64748b" />
+        </mesh>
+        <mesh position={[0.2, 0.25, 0]}>
+          <boxGeometry args={[0.6, 0.5, 0.2]} />
+          <meshStandardMaterial color="#64748b" />
+        </mesh>
+      </group>
+    );
+  }
+
+  return (
+    <mesh position={[0, 0.25, 0]}>
+      <boxGeometry args={[1, 0.5, 0.2]} />
+      <meshStandardMaterial color="#64748b" />
+    </mesh>
+  );
+}
+
+function Building({ x, z, type, connections }) {
   if (type === "generator") {
     return (
       <group position={[x, 0, z]}>
@@ -44,10 +70,9 @@ function Building({ x, z, type }) {
 
   if (type === "wall") {
     return (
-      <mesh position={[x, 0.25, z]}>
-        <boxGeometry args={[1, 0.5, 0.2]} />
-        <meshStandardMaterial color="#64748b" />
-      </mesh>
+      <group position={[x, 0, z]}>
+        <WallModel connections={connections} />
+      </group>
     );
   }
 
@@ -76,17 +101,32 @@ function GhostTile({ x, z, canBuild }) {
   );
 }
 
-function AnimatedBuilding({ x, z, children }) {
+function AnimatedBuilding({ position, children }) {
+  const ref = useRef();
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.12);
+    }
+  });
+
   return (
-    <motion.group
-      position={[x, 0, z]}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 0.25 }}
-    >
+    <group ref={ref} position={position} scale={[0, 0, 0]}>
       {children}
-    </motion.group>
+    </group>
   );
+}
+
+function getWallConnections(buildings, x, y) {
+  const isWall = (tx, ty) =>
+    buildings.some((b) => b.type === "wall" && b.x === tx && b.y === ty);
+
+  return {
+    top: isWall(x, y - 1),
+    bottom: isWall(x, y + 1),
+    left: isWall(x - 1, y),
+    right: isWall(x + 1, y),
+  };
 }
 
 export default function Base3D({ data, onBuild }) {
@@ -111,6 +151,11 @@ export default function Base3D({ data, onBuild }) {
         const worldX = x - offsetX;
         const worldZ = y - offsetY;
 
+        const connections =
+          building?.type === "wall"
+            ? getWallConnections(data.buildings, x, y)
+            : null;
+
         return (
           <group key={`${x}-${y}`}>
             <Tile
@@ -123,8 +168,13 @@ export default function Base3D({ data, onBuild }) {
             />
 
             {building && (
-              <AnimatedBuilding x={worldX} z={worldZ}>
-                <Building x={0} z={0} type={building.type} />
+              <AnimatedBuilding position={[worldX, 0, worldZ]}>
+                <Building
+                  x={0}
+                  z={0}
+                  type={building.type}
+                  connections={connections}
+                />
               </AnimatedBuilding>
             )}
           </group>

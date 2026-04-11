@@ -46,6 +46,15 @@ class BuildRequest(BaseModel):
             raise ValueError("Invalid y position")
         return v
 
+    rotation: int = 0
+
+    @field_validator("rotation")
+    @classmethod
+    def validate_rotation(cls, v: int):
+        if v not in (0, 90, 180, 270):
+            raise ValueError("Invalid rotation")
+        return v
+
 
 async def get_or_create_player_stats(db: AsyncSession, user_id) -> PlayerStats:
     result = await db.execute(select(PlayerStats).where(PlayerStats.user_id == user_id))
@@ -130,6 +139,7 @@ async def get_base_state(
                 "level": building.level,
                 "x": building.grid_x,
                 "y": building.grid_y,
+                "rotation": building.rotation,
             }
             for building in buildings
         ],
@@ -173,6 +183,7 @@ async def build_structure(
         level=1,
         grid_x=data.x,
         grid_y=data.y,
+        rotation=data.rotation,
     )
     db.add(building)
 
