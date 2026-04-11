@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { API_URL } from "../lib/utils";
+import Base3D from "../components/Base3D";
 
 export default function BasePage() {
   const [data, setData] = useState(null);
@@ -125,40 +126,13 @@ export default function BasePage() {
         </button>
       </div>
 
-      <h2 className="mb-3 text-xl font-semibold">Grid</h2>
+      <h2 className="mb-3 text-xl font-semibold">Base 3D</h2>
 
-      <div
-        className="grid gap-1"
-        style={{
-          gridTemplateColumns: `repeat(${data.grid.width}, 40px)`,
-        }}
-      >
-        {Array.from({ length: data.grid.width * data.grid.height }).map((_, i) => {
-          const x = i % data.grid.width;
-          const y = Math.floor(i / data.grid.width);
-
-          const building = data.buildings.find((b) => b.x === x && b.y === y);
-
-          return (
-            <button
-              key={i}
-              onClick={() => !building && build(selectedBuilding, x, y)}
-              className={`flex h-10 w-10 items-center justify-center border text-xs ${
-                building
-                  ? "cursor-default bg-emerald-500 text-white"
-                  : "bg-slate-800 hover:bg-slate-700"
-              }`}
-              disabled={!!building}
-              title={
-                building
-                  ? `${building.type} (lvl ${building.level})`
-                  : `Build ${selectedBuilding}`
-              }
-            >
-              {building ? building.type[0].toUpperCase() : ""}
-            </button>
-          );
-        })}
+      <div className="h-[600px] w-full overflow-hidden rounded border">
+        <Base3D
+          data={data}
+          onBuild={(x, y) => build(selectedBuilding, x, y)}
+        />
       </div>
     </div>
   );
