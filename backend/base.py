@@ -185,3 +185,32 @@ async def build_structure(
         "cost": cost,
         "remaining_users": round(player_stats.current_users, 2),
     }
+
+
+@base_router.post("/reset")
+async def reset_base(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+    await db.execute(
+        BaseBuilding.__table__.delete().where(BaseBuilding.user_id == user.id)
+    )
+
+    await db.execute(BaseStats.__table__.delete().where(BaseStats.user_id == user.id))
+
+    base_stats = BaseStats(
+        user_id=user.id, grid_width=GRID_WIDTH, grid_height=GRID_HEIGHT
+    )
+    db.add(base_stats)
+
+    core = BaseBuilding(
+        user_id=user.id,
+        building_type="core",
+        level=1,
+        grid_x=GRID_WIDTH // 2,
+        grid_y=GRID_HEIGHT // 2,
+    )
+    db.add(core)
+
+    await db.commit()
+
+    return {"success": True}
