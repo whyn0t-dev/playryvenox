@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { API_URL } from "../lib/utils";
 
 export default function BasePage() {
   const [data, setData] = useState(null);
@@ -17,7 +18,7 @@ export default function BasePage() {
 
       const token = session?.access_token;
 
-      const res = await fetch("/api/base/state", {
+      const res = await fetch(`${API_URL}/api/base/state`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,7 +53,7 @@ export default function BasePage() {
 
       const token = session?.access_token;
 
-      const res = await fetch("/api/base/build", {
+      const res = await fetch(`${API_URL}/api/base/build`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
