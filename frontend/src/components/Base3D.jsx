@@ -162,18 +162,23 @@ function DefenseTowerModel({ preview = false }) {
 }
 
 function HelicopterModel({ preview = false }) {
+  const groupRef = useRef();
   const mainRotorRef = useRef();
   const tailRotorRef = useRef();
 
   useFrame(({ clock }) => {
-    if (!preview) {
-      if (mainRotorRef.current) {
-        mainRotorRef.current.rotation.y = clock.getElapsedTime() * 20;
-      }
+    const t = clock.getElapsedTime();
 
-      if (tailRotorRef.current) {
-        tailRotorRef.current.rotation.x = clock.getElapsedTime() * 30;
-      }
+    if (mainRotorRef.current) {
+      mainRotorRef.current.rotation.y = t * 20;
+    }
+
+    if (tailRotorRef.current) {
+      tailRotorRef.current.rotation.x = t * 30;
+    }
+
+    if (groupRef.current && !preview) {
+      groupRef.current.position.y = 0.55 + Math.sin(t * 2) * 0.05;
     }
   });
 
@@ -182,32 +187,27 @@ function HelicopterModel({ preview = false }) {
   const glassColor = preview ? "#d9f99d" : "#93c5fd";
 
   return (
-    <group position={[0, 0.55, 0]}>
-      {/* corps principal */}
+    <group ref={groupRef} position={[0, 0.55, 0]}>
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[1.2, 0.45, 0.5]} />
         <meshStandardMaterial color={bodyColor} />
       </mesh>
 
-      {/* cockpit */}
       <mesh position={[0.45, 0.05, 0]}>
         <sphereGeometry args={[0.22, 16, 16]} />
         <meshStandardMaterial color={glassColor} transparent opacity={0.85} />
       </mesh>
 
-      {/* queue */}
       <mesh position={[-1.0, 0.02, 0]}>
         <boxGeometry args={[1.1, 0.12, 0.12]} />
         <meshStandardMaterial color={bodyColor} />
       </mesh>
 
-      {/* aileron de queue */}
       <mesh position={[-1.45, 0.18, 0]}>
         <boxGeometry args={[0.18, 0.35, 0.08]} />
         <meshStandardMaterial color={bodyColor} />
       </mesh>
 
-      {/* patins */}
       <mesh position={[0.25, -0.32, 0.22]}>
         <boxGeometry args={[0.9, 0.05, 0.05]} />
         <meshStandardMaterial color={darkColor} />
@@ -233,31 +233,28 @@ function HelicopterModel({ preview = false }) {
         <meshStandardMaterial color={darkColor} />
       </mesh>
 
-      {/* mât rotor principal */}
       <mesh position={[0, 0.28, 0]}>
         <cylinderGeometry args={[0.04, 0.04, 0.18, 10]} />
         <meshStandardMaterial color={darkColor} />
       </mesh>
 
-      {/* rotor principal */}
       <group ref={mainRotorRef} position={[0, 0.4, 0]}>
-        <mesh position={[0, 0, 0]}>
+        <mesh>
           <boxGeometry args={[1.8, 0.03, 0.12]} />
           <meshStandardMaterial color={darkColor} />
         </mesh>
-        <mesh position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <mesh rotation={[0, Math.PI / 2, 0]}>
           <boxGeometry args={[1.8, 0.03, 0.12]} />
           <meshStandardMaterial color={darkColor} />
         </mesh>
       </group>
 
-      {/* rotor arrière */}
       <group ref={tailRotorRef} position={[-1.52, 0.18, 0]}>
-        <mesh position={[0, 0, 0]}>
+        <mesh>
           <boxGeometry args={[0.02, 0.32, 0.08]} />
           <meshStandardMaterial color={darkColor} />
         </mesh>
-        <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
           <boxGeometry args={[0.02, 0.32, 0.08]} />
           <meshStandardMaterial color={darkColor} />
         </mesh>
