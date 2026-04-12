@@ -17,6 +17,7 @@ BUILDING_COSTS = {
     "generator": 100,
     "storage": 150,
     "wall": 50,
+    "defense_tower": 200,
 }
 
 
@@ -192,7 +193,7 @@ async def build_structure(
 
     return {
         "success": True,
-        "building": {"type": data.building_type, "x": data.x, "y": data.y, "level": 1},
+        "building": {"type": data.building_type, "x": data.x, "y": data.y, "level": 1, "rotation": data.rotation},
         "cost": cost,
         "remaining_users": round(player_stats.current_users, 2),
     }

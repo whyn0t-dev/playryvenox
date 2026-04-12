@@ -242,8 +242,8 @@ export default function BasePage() {
                                     onClick={() => setSelectedBuilding("generator")}
                                     disabled={loadingAction}
                                     className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "generator"
-                                            ? "border-emerald-400/40 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        ? "border-emerald-400/40 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
                                         }`}
                                 >
                                     <span>Generator</span>
@@ -256,8 +256,8 @@ export default function BasePage() {
                                     onClick={() => setSelectedBuilding("storage")}
                                     disabled={loadingAction}
                                     className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "storage"
-                                            ? "border-blue-400/40 bg-blue-500 text-white shadow-lg shadow-blue-500/20"
-                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        ? "border-blue-400/40 bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
                                         }`}
                                 >
                                     <span>Storage</span>
@@ -270,13 +270,27 @@ export default function BasePage() {
                                     onClick={() => setSelectedBuilding("wall")}
                                     disabled={loadingAction}
                                     className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "wall"
-                                            ? "border-slate-400/40 bg-slate-600 text-white shadow-lg shadow-slate-500/20"
-                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        ? "border-slate-400/40 bg-slate-600 text-white shadow-lg shadow-slate-500/20"
+                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
                                         }`}
                                 >
                                     <span>Wall</span>
                                     <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
                                         {data.building_costs.wall}
+                                    </span>
+                                </button>
+
+                                <button
+                                    onClick={() => setSelectedBuilding("defense_tower")}
+                                    disabled={loadingAction}
+                                    className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "defense_tower"
+                                            ? "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        }`}
+                                >
+                                    <span>Defense Tower</span>
+                                    <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
+                                        {data.building_costs.defense_tower}
                                     </span>
                                 </button>
                             </div>
