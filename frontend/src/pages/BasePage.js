@@ -279,7 +279,24 @@ export default function BasePage() {
             scheduleSafeRefetch();
         } catch (err) {
             console.error(err);
-            setError(err.message || "Build error");
+
+            const rawMessage =
+                typeof err?.message === "string" ? err.message : "";
+
+            let friendlyMessage = rawMessage || "Erreur lors du placement de l'objet.";
+
+            if (
+                rawMessage.includes("Body is locked or disturbed") ||
+                rawMessage.includes("Not enough users")
+            ) {
+                friendlyMessage =
+                    "L'achat est insuffisant. L'objet n'a pas pu être placé.";
+            } else if (rawMessage.includes("Cell already occupied")) {
+                friendlyMessage =
+                    "Cette case est déjà occupée. L'objet n'a pas pu être placé.";
+            }
+
+            setError(friendlyMessage);
             setData(previousData);
         } finally {
             setLoadingAction(false);
