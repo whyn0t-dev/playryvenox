@@ -23,7 +23,6 @@ export default function BasePage() {
     const [rotation, setRotation] = useState(0);
 
     const refetchTimeoutRef = useRef(null);
-    const isFetchingRef = useRef(false);
     const mountedRef = useRef(true);
 
     const formatNumber = (value) => {
@@ -86,11 +85,7 @@ export default function BasePage() {
     };
 
     const fetchBase = async ({ silent = false } = {}) => {
-        if (isFetchingRef.current) return;
-
         try {
-            isFetchingRef.current = true;
-
             if (!silent) {
                 setLoading(true);
             }
@@ -117,6 +112,7 @@ export default function BasePage() {
 
             if (!mountedRef.current) return;
 
+            console.log("fetchBase result:", json);
             setData(json);
         } catch (err) {
             console.error(err);
@@ -124,8 +120,6 @@ export default function BasePage() {
             if (!mountedRef.current) return;
             setError(err.message || "Error loading base");
         } finally {
-            isFetchingRef.current = false;
-
             if (!silent && mountedRef.current) {
                 setLoading(false);
             }
@@ -138,8 +132,9 @@ export default function BasePage() {
         }
 
         refetchTimeoutRef.current = setTimeout(() => {
+            console.log("Realtime refetch triggered");
             fetchBase({ silent: true });
-        }, 150);
+        }, 250);
     };
 
     const applyOptimisticBuild = ({ type, x, y, rotation }) => {
@@ -195,7 +190,6 @@ export default function BasePage() {
     }, []);
 
     useEffect(() => {
-        // Remplace "buildings", "players", "bases" par tes vrais noms de tables
         const channel = supabase
             .channel("base-realtime")
             .on(
@@ -205,7 +199,8 @@ export default function BasePage() {
                     schema: "public",
                     table: "base_buildings",
                 },
-                () => {
+                (payload) => {
+                    console.log("base_buildings changed:", payload);
                     scheduleSafeRefetch();
                 }
             )
@@ -216,7 +211,8 @@ export default function BasePage() {
                     schema: "public",
                     table: "player_stats",
                 },
-                () => {
+                (payload) => {
+                    console.log("player_stats changed:", payload);
                     scheduleSafeRefetch();
                 }
             )
@@ -225,9 +221,10 @@ export default function BasePage() {
                 {
                     event: "*",
                     schema: "public",
-                    table: "bases_stats",
+                    table: "base_stats",
                 },
-                () => {
+                (payload) => {
+                    console.log("base_stats changed:", payload);
                     scheduleSafeRefetch();
                 }
             )

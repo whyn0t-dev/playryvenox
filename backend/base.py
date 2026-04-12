@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from dependencies import get_current_user
+
 from models import BaseBuilding, BaseStats, PlayerStats, Upgrade, PlayerUpgrade, User
+from game_logic import recalculate_passive_income
 
 base_router = APIRouter(prefix="/base", tags=["base"])
 
@@ -128,6 +130,9 @@ async def get_base_state(
     base_stats = await get_or_create_base_stats(db, user.id)
     player_stats = await get_or_create_player_stats(db, user.id)
 
+    # Synchronise les gains passifs comme sur /game/state
+    player_stats, _ = await recalculate_passive_income(db, player_stats)
+
     result = await db.execute(
         select(BaseBuilding).where(BaseBuilding.user_id == user.id)
     )
@@ -194,7 +199,13 @@ async def build_structure(
 
     return {
         "success": True,
-        "building": {"type": data.building_type, "x": data.x, "y": data.y, "level": 1, "rotation": data.rotation},
+        "building": {
+            "type": data.building_type,
+            "x": data.x,
+            "y": data.y,
+            "level": 1,
+            "rotation": data.rotation,
+        },
         "cost": cost,
         "remaining_users": round(player_stats.current_users, 2),
     }

@@ -20,6 +20,8 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from typing import List, Optional
 
+from game_logic import recalculate_passive_income, recalculate_player_stats
+
 from database import get_db, engine, Base, AsyncSessionLocal
 from models import User, PlayerStats, Upgrade, PlayerUpgrade, UserTransfer
 
