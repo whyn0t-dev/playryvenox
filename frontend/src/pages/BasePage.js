@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Boxes,
     Shield,
-    TowerControl,
+    RadioTower,
     Helicopter,
     Zap,
     Users,
@@ -22,13 +22,19 @@ export default function BasePage() {
     const [loadingAction, setLoadingAction] = useState(false);
     const [rotation, setRotation] = useState(0);
 
+    const refetchTimeoutRef = useRef(null);
+    const isFetchingRef = useRef(false);
+    const mountedRef = useRef(true);
+
     const formatNumber = (value) => {
         const num = Number(value);
 
         if (!Number.isFinite(num)) return "0";
 
         if (Math.abs(num) >= 1_000_000_000) {
-            return `${(num / 1_000_000_000).toFixed(num % 1_000_000_000 === 0 ? 0 : 1)}B`;
+            return `${(num / 1_000_000_000).toFixed(
+                num % 1_000_000_000 === 0 ? 0 : 1
+            )}B`;
         }
 
         if (Math.abs(num) >= 1_000_000) {
@@ -48,39 +54,47 @@ export default function BasePage() {
 
     const buildingMeta = {
         generator: {
-            label: "Générateur",
+            label: "Generator",
             icon: Zap,
             activeClass:
                 "border-emerald-400/40 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20",
         },
         storage: {
-            label: "Stockage",
+            label: "Storage",
             icon: Boxes,
             activeClass:
                 "border-blue-400/40 bg-blue-500 text-white shadow-lg shadow-blue-500/20",
         },
         wall: {
-            label: "Murs",
+            label: "Wall",
             icon: Shield,
             activeClass:
                 "border-slate-400/40 bg-slate-600 text-white shadow-lg shadow-slate-500/20",
         },
         defense_tower: {
-            label: "Tour de défense",
-            icon: TowerControl,
+            label: "Defense Tower",
+            icon: RadioTower,
             activeClass:
                 "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20",
         },
         helicopter: {
-            label: "Hélicoptère",
+            label: "Helicopter",
             icon: Helicopter,
             activeClass:
                 "border-lime-400/40 bg-lime-500 text-white shadow-lg shadow-lime-500/20",
         },
     };
 
-    const fetchBase = async () => {
+    const fetchBase = async ({ silent = false } = {}) => {
+        if (isFetchingRef.current) return;
+
         try {
+            isFetchingRef.current = true;
+
+            if (!silent) {
+                setLoading(true);
+            }
+
             setError("");
 
             const {
@@ -101,25 +115,141 @@ export default function BasePage() {
                 throw new Error(json.detail || "Failed to load base");
             }
 
+            if (!mountedRef.current) return;
+
             setData(json);
         } catch (err) {
             console.error(err);
+
+            if (!mountedRef.current) return;
             setError(err.message || "Error loading base");
         } finally {
-            setLoading(false);
+            isFetchingRef.current = false;
+
+            if (!silent && mountedRef.current) {
+                setLoading(false);
+            }
         }
     };
 
+    const scheduleSafeRefetch = () => {
+        if (refetchTimeoutRef.current) {
+            clearTimeout(refetchTimeoutRef.current);
+        }
+
+        refetchTimeoutRef.current = setTimeout(() => {
+            fetchBase({ silent: true });
+        }, 150);
+    };
+
+    const applyOptimisticBuild = ({ type, x, y, rotation }) => {
+        setData((prev) => {
+            if (!prev) return prev;
+
+            const cost = Number(prev.building_costs?.[type] ?? 0);
+            const currentUsers = Number(prev.player?.current_users ?? 0);
+
+            return {
+                ...prev,
+                player: {
+                    ...prev.player,
+                    current_users: Math.max(0, currentUsers - cost),
+                },
+                buildings: [
+                    ...(prev.buildings || []),
+                    {
+                        type,
+                        level: 1,
+                        x,
+                        y,
+                        rotation,
+                        pending: true,
+                    },
+                ],
+            };
+        });
+    };
+
     useEffect(() => {
+        mountedRef.current = true;
         fetchBase();
+
+        return () => {
+            mountedRef.current = false;
+
+            if (refetchTimeoutRef.current) {
+                clearTimeout(refetchTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key.toLowerCase() === "r") {
+                setRotation((prev) => (prev + 90) % 360);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+        // Remplace "buildings", "players", "bases" par tes vrais noms de tables
+        const channel = supabase
+            .channel("base-realtime")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "base_buildings",
+                },
+                () => {
+                    scheduleSafeRefetch();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "player_stats",
+                },
+                () => {
+                    scheduleSafeRefetch();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "bases_stats",
+                },
+                () => {
+                    scheduleSafeRefetch();
+                }
+            )
+            .subscribe((status) => {
+                console.log("Base realtime status:", status);
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const build = async (type, x, y) => {
-        if (loadingAction) return;
+        if (loadingAction || !data) return;
+
+        const previousData = structuredClone(data);
 
         try {
             setLoadingAction(true);
             setError("");
+
+            applyOptimisticBuild({ type, x, y, rotation });
 
             const {
                 data: { session },
@@ -147,37 +277,49 @@ export default function BasePage() {
                 throw new Error(json.detail || "Build failed");
             }
 
-            await fetchBase();
+            // Pas de fetchBase() ici :
+            // le realtime va resynchroniser automatiquement.
+            scheduleSafeRefetch();
         } catch (err) {
             console.error(err);
             setError(err.message || "Build error");
+            setData(previousData);
         } finally {
             setLoadingAction(false);
         }
     };
 
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key.toLowerCase() === "r") {
-                setRotation((prev) => (prev + 90) % 360);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
-
     const resetBase = async () => {
         if (loadingAction) return;
 
         const confirmed = confirm(
-            "⚠️ Réinitialiser la base ? Les ressources dépensées ne seront PAS remboursées."
+            "⚠️ Reset base ? Users spent will NOT be refunded."
         );
         if (!confirmed) return;
+
+        const previousData = structuredClone(data);
 
         try {
             setLoadingAction(true);
             setError("");
+
+            // Optimiste : on vide localement ce qu'on peut sans casser la structure
+            setData((prev) => {
+                if (!prev) return prev;
+
+                return {
+                    ...prev,
+                    buildings: [
+                        {
+                            type: "core",
+                            level: 1,
+                            x: Math.floor((prev.grid?.width ?? 50) / 2),
+                            y: Math.floor((prev.grid?.height ?? 50) / 2),
+                            rotation: 0,
+                        },
+                    ],
+                };
+            });
 
             const {
                 data: { session },
@@ -198,10 +340,11 @@ export default function BasePage() {
                 throw new Error(json.detail || "Reset failed");
             }
 
-            await fetchBase();
+            scheduleSafeRefetch();
         } catch (err) {
             console.error(err);
             setError(err.message || "Reset error");
+            setData(previousData);
         } finally {
             setLoadingAction(false);
         }
@@ -213,7 +356,7 @@ export default function BasePage() {
                 <div className="mx-auto max-w-7xl">
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
                         <div className="animate-pulse text-lg font-medium text-slate-300">
-                            Chargement de votre base en cours...
+                            Loading base...
                         </div>
                     </div>
                 </div>
@@ -226,7 +369,7 @@ export default function BasePage() {
             <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
                 <div className="mx-auto max-w-7xl">
                     <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-300 shadow-2xl">
-                        Erreur de chargement de la base. Veuillez réessayer plus tard.
+                        Error loading base
                     </div>
                 </div>
             </div>
@@ -242,10 +385,10 @@ export default function BasePage() {
                 <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h1 className="text-4xl font-black tracking-tight text-white">
-                            🏗 Votre base
+                            🏗 Base
                         </h1>
                         <p className="mt-2 text-sm text-slate-400">
-                            Construisez et organisez votre base d'empire en 3D.
+                            Build and organize your empire base in 3D.
                         </p>
                     </div>
 
@@ -274,7 +417,7 @@ export default function BasePage() {
                 <div className="mb-6 grid gap-4 md:grid-cols-3">
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            Utilisateurs actuels
+                            Users
                         </p>
                         <div className="mt-2 flex items-center gap-3">
                             <Users className="h-6 w-6 text-cyan-400" />
@@ -286,7 +429,7 @@ export default function BasePage() {
 
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            Bâtiment sélectionné
+                            Selected
                         </p>
                         <div className="mt-2 flex items-center gap-3">
                             <SelectedBuildingIcon className="h-6 w-6 text-violet-400" />
@@ -298,7 +441,7 @@ export default function BasePage() {
 
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            Coût de construction
+                            Cost
                         </p>
                         <div className="mt-2 flex items-center gap-3">
                             <Coins className="h-6 w-6 text-yellow-400" />
@@ -314,10 +457,10 @@ export default function BasePage() {
                         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur lg:sticky lg:top-6">
                             <div className="mb-4">
                                 <h2 className="text-lg font-semibold text-white">
-                                    Sélection du bâtiment
+                                    Building Selection
                                 </h2>
                                 <p className="text-sm text-slate-400">
-                                    Choisissez une structure, puis cliquez sur une tuile pour la placer.
+                                    Choose a structure, then click on a tile to place it.
                                 </p>
                             </div>
 
@@ -331,11 +474,10 @@ export default function BasePage() {
                                             key={key}
                                             onClick={() => setSelectedBuilding(key)}
                                             disabled={loadingAction}
-                                            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-                                                isSelected
-                                                    ? meta.activeClass
-                                                    : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
-                                            }`}
+                                            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${isSelected
+                                                ? meta.activeClass
+                                                : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                                }`}
                                         >
                                             <span className="flex items-center gap-2">
                                                 <Icon className="h-4 w-4" />
@@ -351,7 +493,7 @@ export default function BasePage() {
 
                             <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                                    Sélection actuelle
+                                    Current selection
                                 </p>
                                 <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
                                     <SelectedBuildingIcon className="h-5 w-5 text-violet-400" />
@@ -370,7 +512,7 @@ export default function BasePage() {
                                     disabled={loadingAction}
                                     className="w-full rounded-xl border border-red-500/30 bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    {loadingAction ? "Veuillez patienter..." : "Réinitialiser la base"}
+                                    {loadingAction ? "Please wait..." : "Reset Base"}
                                 </button>
                             </div>
                         </div>
@@ -381,14 +523,14 @@ export default function BasePage() {
                             <div>
                                 <h2 className="text-lg font-semibold text-white">Base 3D</h2>
                                 <p className="text-sm text-slate-400">
-                                    Tournez avec la souris, zoomez, appuyez sur R pour faire tourner les prévisualisations.
+                                    Rotate with the mouse, zoom in and out, press R to rotate previews.
                                 </p>
                             </div>
 
                             <div className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300">
                                 <span className="flex items-center gap-2">
                                     <SelectedBuildingIcon className="h-4 w-4 text-violet-400" />
-                                    Actuel :{" "}
+                                    Current:{" "}
                                     <span className="font-semibold text-white">
                                         {buildingMeta[selectedBuilding]?.label || selectedBuilding}
                                     </span>
