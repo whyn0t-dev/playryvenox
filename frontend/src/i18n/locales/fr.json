@@ -664,5 +664,50 @@
         "footer": {
             "lastUpdate": "Dernière mise à jour : à compléter selon la date de publication effective."
         }
+    },
+    "basePage": {
+        "title": "🏗 Base",
+        "subtitle": "Construis et organise la base de ton empire en 3D.",
+        "rotation": "Rotation",
+        "loading": "Chargement de la base...",
+        "errorLoading": "Erreur lors du chargement de la base",
+        "stats": {
+            "users": "Utilisateurs",
+            "selected": "Sélection",
+            "cost": "Coût"
+        },
+        "selection": {
+            "title": "Sélection du bâtiment",
+            "description": "Choisis une structure, puis clique sur une case pour la placer.",
+            "currentSelection": "Sélection actuelle",
+            "rotationValue": "Rotation : {{value}}°"
+        },
+        "reset": {
+            "button": "Réinitialiser la base",
+            "loading": "Veuillez patienter...",
+            "confirm": "⚠️ Réinitialiser la base ? Les utilisateurs dépensés ne seront PAS remboursés."
+        },
+        "base3d": {
+            "title": "Base 3D",
+            "description": "Tourne avec la souris, zoome et dézoome, appuie sur R pour faire pivoter les aperçus.",
+            "current": "Actuel :"
+        },
+        "buildings": {
+            "generator": "Générateur",
+            "storage": "Stockage",
+            "wall": "Mur",
+            "defense_tower": "Tour de défense",
+            "helicopter": "Hélicoptère"
+        },
+        "messages": {
+            "failedToLoad": "Impossible de charger la base",
+            "errorLoading": "Erreur lors du chargement de la base",
+            "buildFailed": "La construction a échoué",
+            "buildError": "Erreur lors du placement de l'objet.",
+            "notEnoughUsers": "Achat insuffisant. L'objet n'a pas pu être placé.",
+            "cellOccupied": "Cette case est déjà occupée. L'objet n'a pas pu être placé.",
+            "resetFailed": "La réinitialisation a échoué",
+            "resetError": "Erreur lors de la réinitialisation"
+        }
     }
 }

@@ -630,5 +630,50 @@
         "footer": {
             "lastUpdate": "Last update: to be completed according to the effective publication date."
         }
+    },
+    "basePage": {
+        "title": "🏗 Base",
+        "subtitle": "Build and organize your empire base in 3D.",
+        "rotation": "Rotation",
+        "loading": "Loading base...",
+        "errorLoading": "Error loading base",
+        "stats": {
+            "users": "Users",
+            "selected": "Selected",
+            "cost": "Cost"
+        },
+        "selection": {
+            "title": "Building Selection",
+            "description": "Choose a structure, then click on a tile to place it.",
+            "currentSelection": "Current selection",
+            "rotationValue": "Rotation: {{value}}°"
+        },
+        "reset": {
+            "button": "Reset Base",
+            "loading": "Please wait...",
+            "confirm": "⚠️ Reset base? Users spent will NOT be refunded."
+        },
+        "base3d": {
+            "title": "Base 3D",
+            "description": "Rotate with the mouse, zoom in and out, press R to rotate previews.",
+            "current": "Current:"
+        },
+        "buildings": {
+            "generator": "Generator",
+            "storage": "Storage",
+            "wall": "Wall",
+            "defense_tower": "Defense Tower",
+            "helicopter": "Helicopter"
+        },
+        "messages": {
+            "failedToLoad": "Failed to load base",
+            "errorLoading": "Error loading base",
+            "buildFailed": "Build failed",
+            "buildError": "Error while placing the object.",
+            "notEnoughUsers": "Purchase failed. The object could not be placed.",
+            "cellOccupied": "This tile is already occupied. The object could not be placed.",
+            "resetFailed": "Reset failed",
+            "resetError": "Reset error"
+        }
     }
 }
