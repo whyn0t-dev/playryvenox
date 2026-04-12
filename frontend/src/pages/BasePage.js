@@ -140,6 +140,22 @@ export default function BasePage() {
         }
     };
 
+    useFrame(({ clock }) => {
+        const t = clock.getElapsedTime();
+
+        if (!preview) {
+            if (mainRotorRef.current) {
+                mainRotorRef.current.rotation.y = t * 20;
+            }
+            if (tailRotorRef.current) {
+                tailRotorRef.current.rotation.x = t * 30;
+            }
+            if (groupRef.current) {
+                groupRef.current.position.y = 0.55 + Math.sin(t * 2) * 0.05;
+            }
+        }
+    });
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
@@ -284,13 +300,27 @@ export default function BasePage() {
                                     onClick={() => setSelectedBuilding("defense_tower")}
                                     disabled={loadingAction}
                                     className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "defense_tower"
-                                            ? "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
-                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        ? "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
                                         }`}
                                 >
                                     <span>Defense Tower</span>
                                     <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
                                         {data.building_costs.defense_tower}
+                                    </span>
+                                </button>
+
+                                <button
+                                    onClick={() => setSelectedBuilding("helicopter")}
+                                    disabled={loadingAction}
+                                    className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "helicopter"
+                                        ? "border-lime-400/40 bg-lime-500 text-white shadow-lg shadow-lime-500/20"
+                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                        }`}
+                                >
+                                    <span>Helicopter</span>
+                                    <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
+                                        {data.building_costs.helicopter}
                                     </span>
                                 </button>
                             </div>

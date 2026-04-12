@@ -9,15 +9,16 @@ from models import BaseBuilding, BaseStats, PlayerStats, Upgrade, PlayerUpgrade,
 
 base_router = APIRouter(prefix="/base", tags=["base"])
 
-GRID_WIDTH = 10
-GRID_HEIGHT = 10
+GRID_WIDTH = 50
+GRID_HEIGHT = 50
 
 BUILDING_COSTS = {
     "core": 0,
-    "generator": 100,
-    "storage": 150,
-    "wall": 50,
-    "defense_tower": 200,
+    "generator": 200000,
+    "storage": 500000,
+    "wall": 3000,
+    "defense_tower": 15000,
+    "helicopter": 150000,
 }
 
 

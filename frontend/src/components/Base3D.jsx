@@ -161,6 +161,111 @@ function DefenseTowerModel({ preview = false }) {
   );
 }
 
+function HelicopterModel({ preview = false }) {
+  const mainRotorRef = useRef();
+  const tailRotorRef = useRef();
+
+  useFrame(({ clock }) => {
+    if (!preview) {
+      if (mainRotorRef.current) {
+        mainRotorRef.current.rotation.y = clock.getElapsedTime() * 20;
+      }
+
+      if (tailRotorRef.current) {
+        tailRotorRef.current.rotation.x = clock.getElapsedTime() * 30;
+      }
+    }
+  });
+
+  const bodyColor = preview ? "#86efac" : "#16a34a";
+  const darkColor = preview ? "#bbf7d0" : "#1f2937";
+  const glassColor = preview ? "#d9f99d" : "#93c5fd";
+
+  return (
+    <group position={[0, 0.55, 0]}>
+      {/* corps principal */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1.2, 0.45, 0.5]} />
+        <meshStandardMaterial color={bodyColor} />
+      </mesh>
+
+      {/* cockpit */}
+      <mesh position={[0.45, 0.05, 0]}>
+        <sphereGeometry args={[0.22, 16, 16]} />
+        <meshStandardMaterial color={glassColor} transparent opacity={0.85} />
+      </mesh>
+
+      {/* queue */}
+      <mesh position={[-1.0, 0.02, 0]}>
+        <boxGeometry args={[1.1, 0.12, 0.12]} />
+        <meshStandardMaterial color={bodyColor} />
+      </mesh>
+
+      {/* aileron de queue */}
+      <mesh position={[-1.45, 0.18, 0]}>
+        <boxGeometry args={[0.18, 0.35, 0.08]} />
+        <meshStandardMaterial color={bodyColor} />
+      </mesh>
+
+      {/* patins */}
+      <mesh position={[0.25, -0.32, 0.22]}>
+        <boxGeometry args={[0.9, 0.05, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+      <mesh position={[0.25, -0.32, -0.22]}>
+        <boxGeometry args={[0.9, 0.05, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+      <mesh position={[0.55, -0.22, 0.22]}>
+        <boxGeometry args={[0.05, 0.2, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+      <mesh position={[0.55, -0.22, -0.22]}>
+        <boxGeometry args={[0.05, 0.2, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+      <mesh position={[-0.05, -0.22, 0.22]}>
+        <boxGeometry args={[0.05, 0.2, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+      <mesh position={[-0.05, -0.22, -0.22]}>
+        <boxGeometry args={[0.05, 0.2, 0.05]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+
+      {/* mât rotor principal */}
+      <mesh position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.18, 10]} />
+        <meshStandardMaterial color={darkColor} />
+      </mesh>
+
+      {/* rotor principal */}
+      <group ref={mainRotorRef} position={[0, 0.4, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1.8, 0.03, 0.12]} />
+          <meshStandardMaterial color={darkColor} />
+        </mesh>
+        <mesh position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <boxGeometry args={[1.8, 0.03, 0.12]} />
+          <meshStandardMaterial color={darkColor} />
+        </mesh>
+      </group>
+
+      {/* rotor arrière */}
+      <group ref={tailRotorRef} position={[-1.52, 0.18, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.02, 0.32, 0.08]} />
+          <meshStandardMaterial color={darkColor} />
+        </mesh>
+        <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <boxGeometry args={[0.02, 0.32, 0.08]} />
+          <meshStandardMaterial color={darkColor} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 function Building({ x, z, type, rotation = 0, connections }) {
   const rotationY = (rotation * Math.PI) / 180;
 
@@ -200,6 +305,14 @@ function Building({ x, z, type, rotation = 0, connections }) {
     return (
       <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
         <DefenseTowerModel preview={false} />
+      </group>
+    );
+  }
+
+  if (type === "helicopter") {
+    return (
+      <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
+        <HelicopterModel preview={false} />
       </group>
     );
   }
@@ -315,6 +428,14 @@ function GhostBuilding({ x, z, type, rotation = 0, connections, canBuild }) {
             <meshStandardMaterial transparent opacity={0.55} color={color} />
           </mesh>
         </group>
+      </group>
+    );
+  }
+
+  if (type === "helicopter") {
+    return (
+      <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
+        <HelicopterModel preview />
       </group>
     );
   }
