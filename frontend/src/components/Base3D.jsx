@@ -3,14 +3,9 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-function Tile({ x, z, hasBuilding, onClick, onPointerEnter, onPointerLeave }) {
+function Tile({ x, z, hasBuilding }) {
   return (
-    <mesh
-      position={[x, 0, z]}
-      onClick={onClick}
-      onPointerEnter={onPointerEnter}
-      onPointerLeave={onPointerLeave}
-    >
+    <mesh position={[x, 0, z]}>
       <boxGeometry args={[1.02, 0.12, 1.02]} />
       <meshStandardMaterial color={hasBuilding ? "#22c55e" : "#1e293b"} />
     </mesh>
@@ -77,20 +72,19 @@ function WallModel({ connections }) {
   );
 }
 
-function CannonFire({ active = true }) {
+function CannonFire() {
   const flashRef = useRef();
   const projectileRef = useRef();
 
   useFrame(({ clock }) => {
-    if (!active) return;
-
     const t = clock.getElapsedTime();
     const cycle = (t * 1.5) % 1;
 
     if (flashRef.current) {
       const visible = cycle < 0.12;
       flashRef.current.visible = visible;
-      flashRef.current.scale.setScalar(visible ? 1 + cycle * 3 : 0.001);
+      const s = visible ? 1 + cycle * 3 : 0.001;
+      flashRef.current.scale.set(s, s, s);
     }
 
     if (projectileRef.current) {
@@ -99,19 +93,19 @@ function CannonFire({ active = true }) {
 
       if (visible) {
         const p = (cycle - 0.08) / (0.35 - 0.08);
-        projectileRef.current.position.z = -0.9 - p * 1.8;
+        projectileRef.current.position.set(0, 0.08, -0.82 - p * 1.8);
       }
     }
   });
 
   return (
-    <group position={[0, 1.15, -0.65]}>
-      <mesh ref={flashRef} visible={false}>
+    <group>
+      <mesh ref={flashRef} visible={false} position={[0, 0.08, -0.82]}>
         <sphereGeometry args={[0.12, 12, 12]} />
         <meshBasicMaterial color="#f59e0b" />
       </mesh>
 
-      <mesh ref={projectileRef} visible={false} position={[0, 0, -0.9]}>
+      <mesh ref={projectileRef} visible={false} position={[0, 0.08, -0.82]}>
         <sphereGeometry args={[0.06, 10, 10]} />
         <meshBasicMaterial color="#fde68a" />
       </mesh>
@@ -130,43 +124,38 @@ function DefenseTowerModel({ preview = false }) {
 
   return (
     <group>
-      {/* base */}
-      <mesh position={[0, 0.2, 0]}>
-        <cylinderGeometry args={[0.42, 0.5, 0.4, 20]} />
+      {/* socle */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.48, 0.58, 0.3, 20]} />
         <meshStandardMaterial color={preview ? "#93c5fd" : "#475569"} />
       </mesh>
 
-      {/* colonne */}
+      {/* tour */}
       <mesh position={[0, 0.75, 0]}>
-        <cylinderGeometry args={[0.28, 0.32, 0.7, 20]} />
+        <cylinderGeometry args={[0.28, 0.34, 0.9, 20]} />
         <meshStandardMaterial color={preview ? "#60a5fa" : "#64748b"} />
       </mesh>
 
-      {/* plateforme haute */}
-      <mesh position={[0, 1.15, 0]}>
-        <cylinderGeometry args={[0.38, 0.38, 0.18, 20]} />
+      {/* plateforme */}
+      <mesh position={[0, 1.22, 0]}>
+        <cylinderGeometry args={[0.42, 0.42, 0.14, 20]} />
         <meshStandardMaterial color={preview ? "#93c5fd" : "#94a3b8"} />
       </mesh>
 
-      {/* tourelle */}
-      <group ref={turretRef} position={[0, 1.15, 0]}>
+      {/* tête rotative */}
+      <group ref={turretRef} position={[0, 1.22, 0]}>
         <mesh position={[0, 0.12, 0]}>
           <boxGeometry args={[0.42, 0.24, 0.42]} />
           <meshStandardMaterial color={preview ? "#bfdbfe" : "#cbd5e1"} />
         </mesh>
 
-        {/* canon */}
-        <mesh position={[0, 0.05, -0.45]}>
-          <cylinderGeometry args={[0.08, 0.08, 0.7, 16]} />
+        {/* canon horizontal */}
+        <mesh position={[0, 0.08, -0.48]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.07, 0.07, 0.72, 16]} />
           <meshStandardMaterial color={preview ? "#93c5fd" : "#334155"} />
         </mesh>
 
-        <mesh position={[0, 0.05, -0.45]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.08, 0.08, 0.7, 16]} />
-          <meshStandardMaterial color={preview ? "#93c5fd" : "#334155"} />
-        </mesh>
-
-        {!preview && <CannonFire active />}
+        {!preview && <CannonFire />}
       </group>
     </group>
   );
@@ -210,7 +199,7 @@ function Building({ x, z, type, rotation = 0, connections }) {
   if (type === "defense_tower") {
     return (
       <group position={[x, 0, z]} rotation={[0, rotationY, 0]}>
-        <DefenseTowerModel />
+        <DefenseTowerModel preview={false} />
       </group>
     );
   }
@@ -241,7 +230,7 @@ function GhostTile({ x, z, canBuild }) {
         />
       </mesh>
 
-      <mesh position={[0, 0.13, 0]}>
+      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.28, 0.42, 24]} />
         <meshBasicMaterial
           color={canBuild ? "#86efac" : "#fca5a5"}
@@ -253,6 +242,7 @@ function GhostTile({ x, z, canBuild }) {
     </group>
   );
 }
+
 function GhostBuilding({ x, z, type, rotation = 0, connections, canBuild }) {
   const rotationY = (rotation * Math.PI) / 180;
   const color = canBuild ? "#86efac" : "#fca5a5";
@@ -375,10 +365,28 @@ export default function Base3D({
   selectedBuildingType = "wall",
   selectedRotation = 0,
 }) {
+  const planeRef = useRef();
+
   const [hovered, setHovered] = useState(null);
 
   const offsetX = (data.grid.width - 1) / 2;
   const offsetY = (data.grid.height - 1) / 2;
+
+  const getGridPositionFromPoint = (point) => {
+    const x = Math.round(point.x + offsetX);
+    const y = Math.round(point.z + offsetY);
+
+    if (
+      x < 0 ||
+      x >= data.grid.width ||
+      y < 0 ||
+      y >= data.grid.height
+    ) {
+      return null;
+    }
+
+    return { x, y };
+  };
 
   return (
     <Canvas camera={{ position: [6, 8, 10], fov: 50 }}>
@@ -391,6 +399,32 @@ export default function Base3D({
         minPolarAngle={Math.PI / 5}
         maxPolarAngle={Math.PI / 2.2}
       />
+
+      <mesh
+        ref={planeRef}
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0, 0]}
+        onPointerMove={(e) => {
+          const gridPos = getGridPositionFromPoint(e.point);
+          setHovered(gridPos);
+        }}
+        onPointerLeave={() => setHovered(null)}
+        onClick={(e) => {
+          const gridPos = getGridPositionFromPoint(e.point);
+          if (!gridPos) return;
+
+          const occupied = data.buildings.some(
+            (b) => b.x === gridPos.x && b.y === gridPos.y
+          );
+
+          if (!occupied) {
+            onBuild(gridPos.x, gridPos.y);
+          }
+        }}
+      >
+        <planeGeometry args={[data.grid.width, data.grid.height]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
 
       {Array.from({ length: data.grid.width * data.grid.height }).map((_, i) => {
         const x = i % data.grid.width;
@@ -412,9 +446,6 @@ export default function Base3D({
               x={worldX}
               z={worldZ}
               hasBuilding={!!building}
-              onClick={() => !building && onBuild(x, y)}
-              onPointerEnter={() => setHovered({ x, y })}
-              onPointerLeave={() => setHovered(null)}
             />
 
             {building && (
