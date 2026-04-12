@@ -194,7 +194,7 @@ export default function BasePage() {
             </div>
 
             <h2 className="mb-3 text-xl font-semibold">Base 3D</h2>
-
+                <p>Rotation: {rotation}° (touche R)</p>
             <div className="h-[600px] w-full overflow-hidden rounded border">
                 <Base3D
                     data={data}
@@ -202,7 +202,6 @@ export default function BasePage() {
                     rotation={rotation}
                     selectedBuilding={selectedBuilding}
                 />
-                <p>Rotation: {rotation}° (touche R)</p>
             </div>
 
             <div className="mt-4">
