@@ -167,9 +167,9 @@ export default function BasePage() {
     }
 
     return (
-        <div className="h-screen overflow-hidden bg-slate-950 text-slate-100">
-            <div className="mx-auto flex h-full max-w-7xl flex-col px-4 py-4">
-                <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="min-h-screen bg-slate-950 text-slate-100">
+            <div className="mx-auto max-w-7xl px-4 py-8">
+                <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h1 className="text-4xl font-black tracking-tight text-white">
                             🏗 Base
@@ -196,7 +196,7 @@ export default function BasePage() {
                     </div>
                 )}
 
-                <div className="mb-4 grid gap-3 md:grid-cols-3">
+                <div className="mb-6 grid gap-4 md:grid-cols-3">
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                             Users
@@ -225,9 +225,9 @@ export default function BasePage() {
                     </div>
                 </div>
 
-                <div className="min-h-0 flex-1 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-                    <div className="min-h-0">
-                        <div className="flex h-full flex-col rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-xl backdrop-blur">
+                <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                    <div className="space-y-6">
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur lg:sticky lg:top-6">
                             <div className="mb-4">
                                 <h2 className="text-lg font-semibold text-white">
                                     Building Selection
@@ -237,7 +237,7 @@ export default function BasePage() {
                                 </p>
                             </div>
 
-                            <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                            <div className="flex flex-col gap-3">
                                 <button
                                     onClick={() => setSelectedBuilding("generator")}
                                     disabled={loadingAction}
@@ -284,8 +284,8 @@ export default function BasePage() {
                                     onClick={() => setSelectedBuilding("defense_tower")}
                                     disabled={loadingAction}
                                     className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${selectedBuilding === "defense_tower"
-                                        ? "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
-                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                            ? "border-orange-400/40 bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
                                         }`}
                                 >
                                     <span>Defense Tower</span>
@@ -307,7 +307,7 @@ export default function BasePage() {
                                 </p>
                             </div>
 
-                            <div className="mt-4">
+                            <div className="mt-6">
                                 <button
                                     onClick={resetBase}
                                     disabled={loadingAction}
@@ -319,7 +319,7 @@ export default function BasePage() {
                         </div>
                     </div>
 
-                    <div className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur">
+                    <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur">
                         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
                             <div>
                                 <h2 className="text-lg font-semibold text-white">Base 3D</h2>
@@ -336,7 +336,7 @@ export default function BasePage() {
                             </div>
                         </div>
 
-                        <div className="min-h-0 flex-1 bg-slate-950">
+                        <div className="h-[600px] w-full bg-slate-950">
                             <Base3D
                                 data={data}
                                 onBuild={(x, y) => build(selectedBuilding, x, y)}
