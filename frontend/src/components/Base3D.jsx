@@ -507,13 +507,13 @@ export default function Base3D({
   };
 
   return (
-    <Canvas camera={{ position: [6, 8, 10], fov: 50 }}>
+    <Canvas camera={{ position: [25, 30, 25], fov: 50 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[10, 10, 5]} intensity={1.2} />
 
       <OrbitControls
-        minDistance={6}
-        maxDistance={18}
+        minDistance={20}
+        maxDistance={60}
         minPolarAngle={Math.PI / 5}
         maxPolarAngle={Math.PI / 2.2}
       />
