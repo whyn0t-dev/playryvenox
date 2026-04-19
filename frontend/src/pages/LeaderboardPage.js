@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Trophy, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -10,12 +10,18 @@ export default function LeaderboardPage() {
   const { t } = useTranslation();
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const fetchLeaderboard = async () => {
-    setLoading(true);
+  const fetchLeaderboard = useCallback(async (showLoader = true) => {
+    if (showLoader) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
     try {
       const response = await axios.get(`${API}/leaderboard?page=${page}&limit=20`);
       const data = response.data;
@@ -41,12 +47,23 @@ export default function LeaderboardPage() {
       setTotal(0);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
-    fetchLeaderboard();
-  }, [page]);
+    fetchLeaderboard(true);
+  }, [fetchLeaderboard]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchLeaderboard(false);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchLeaderboard]);
 
   const formatNumber = (num) => {
     if (num >= 1000000000) return (num / 1000000000).toFixed(2) + "B";
@@ -62,19 +79,22 @@ export default function LeaderboardPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 mb-4">
             <Trophy className="w-8 h-8 text-primary" />
           </div>
+
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
             {t("leaderboard.title")}
           </h1>
+
           <p className="text-muted-foreground mt-2">
             {t("leaderboard.subtitle", { total })}
           </p>
+
           <Button
             variant="outline"
-            onClick={fetchLeaderboard}
-            disabled={loading}
+            onClick={() => fetchLeaderboard(true)}
+            disabled={loading || refreshing}
             className="rounded-sm mt-4"
           >
-            Actualiser
+            {refreshing ? "Actualisation..." : "Actualiser"}
           </Button>
         </div>
 
@@ -107,24 +127,28 @@ export default function LeaderboardPage() {
                       player && (
                         <tr key={player.rank} data-testid={`leaderboard-row-${player.rank}`}>
                           <td
-                            className={`font-mono font-bold text-xl ${player.rank === 1
-                              ? "rank-1"
-                              : player.rank === 2
+                            className={`font-mono font-bold text-xl ${
+                              player.rank === 1
+                                ? "rank-1"
+                                : player.rank === 2
                                 ? "rank-2"
                                 : player.rank === 3
-                                  ? "rank-3"
-                                  : ""
-                              }`}
+                                ? "rank-3"
+                                : ""
+                            }`}
                           >
                             {player.rank === 1 && "🥇 "}
                             {player.rank === 2 && "🥈 "}
                             {player.rank === 3 && "🥉 "}
                             #{player.rank}
                           </td>
+
                           <td className="font-semibold text-xl">{player.username}</td>
+
                           <td className="text-right font-mono text-xl">
                             {formatNumber(player.total_users_generated)}
                           </td>
+
                           <td className="text-right">
                             <span className="inline-block px-4 py-2 bg-primary/10 text-primary font-semibold text-base border border-primary/20">
                               {t("leaderboard.table.lvl")} {player.level}
@@ -143,6 +167,7 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">
                 {t("leaderboard.pagination.pageOf", { page, totalPages })}
               </div>
+
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -155,6 +180,7 @@ export default function LeaderboardPage() {
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   {t("leaderboard.pagination.previous")}
                 </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
