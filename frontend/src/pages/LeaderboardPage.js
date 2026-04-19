@@ -15,8 +15,8 @@ export default function LeaderboardPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const fetchLeaderboard = useCallback(async (showLoader = true) => {
-    if (showLoader) {
+  const fetchLeaderboard = useCallback(async (showLoading = true) => {
+    if (showLoading) {
       setLoading(true);
     } else {
       setRefreshing(true);
@@ -79,15 +79,12 @@ export default function LeaderboardPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/30 mb-4">
             <Trophy className="w-8 h-8 text-primary" />
           </div>
-
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
             {t("leaderboard.title")}
           </h1>
-
           <p className="text-muted-foreground mt-2">
             {t("leaderboard.subtitle", { total })}
           </p>
-
           <Button
             variant="outline"
             onClick={() => fetchLeaderboard(true)}
@@ -142,13 +139,10 @@ export default function LeaderboardPage() {
                             {player.rank === 3 && "🥉 "}
                             #{player.rank}
                           </td>
-
                           <td className="font-semibold text-xl">{player.username}</td>
-
                           <td className="text-right font-mono text-xl">
                             {formatNumber(player.total_users_generated)}
                           </td>
-
                           <td className="text-right">
                             <span className="inline-block px-4 py-2 bg-primary/10 text-primary font-semibold text-base border border-primary/20">
                               {t("leaderboard.table.lvl")} {player.level}
@@ -167,7 +161,6 @@ export default function LeaderboardPage() {
               <div className="text-sm text-muted-foreground">
                 {t("leaderboard.pagination.pageOf", { page, totalPages })}
               </div>
-
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -180,7 +173,6 @@ export default function LeaderboardPage() {
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   {t("leaderboard.pagination.previous")}
                 </Button>
-
                 <Button
                   variant="outline"
                   size="sm"
