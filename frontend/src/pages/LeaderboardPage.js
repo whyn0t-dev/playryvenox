@@ -11,6 +11,7 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [countdown, setCountdown] = useState(5);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -57,10 +58,14 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        fetchLeaderboard(false);
-      }
-    }, 5000);
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          fetchLeaderboard(false);
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [fetchLeaderboard]);
@@ -85,14 +90,11 @@ export default function LeaderboardPage() {
           <p className="text-muted-foreground mt-2">
             {t("leaderboard.subtitle", { total })}
           </p>
-          <Button
-            variant="outline"
-            onClick={() => fetchLeaderboard(true)}
-            disabled={loading || refreshing}
-            className="rounded-sm mt-4"
-          >
-            {refreshing ? "Actualisation..." : "Actualiser"}
-          </Button>
+          <div className="mt-4 text-sm text-muted-foreground font-mono">
+            {refreshing
+              ? "Actualisation des scores..."
+              : `Actualisation dans ${countdown}...`}
+          </div>
         </div>
 
         <div className="stats-card overflow-hidden p-4 sm:p-6">
