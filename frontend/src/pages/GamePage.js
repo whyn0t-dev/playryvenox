@@ -9,7 +9,6 @@ import DailyBonus from '../components/DailyBonus';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from "react-i18next";
 import AdBanner from '../components/AdBanner'; // ✅ Import
-import { initGameMonetize, showRewardedAd } from '../components/GameMonetize';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -95,7 +94,6 @@ export default function GamePage() {
     useEffect(() => {
         fetchGameState(true);
         fetchTransferStatus();
-        initGameMonetize();
 
         const interval = setInterval(() => {
             fetchGameState(false);
@@ -481,16 +479,6 @@ export default function GamePage() {
                                 </div>
                             ))}
                         </div>
-
-                        {/* ✅ Bouton Rewarded Ad — juste sous le clicker */}
-                        <button
-                            onClick={() => showRewardedAd(() => {
-                                toast.success("🎉 Bonus x2 activé pendant 30 secondes !");
-                            })}
-                            className="mt-4 px-4 py-2 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 flex items-center gap-2 text-sm"
-                        >
-                            📺 Regarder une pub → Bonus x2
-                        </button>
 
                         <p className="text-muted-foreground text-xs sm:text-sm mt-4 sm:mt-6">
                             {t("game.clicker.help")}
