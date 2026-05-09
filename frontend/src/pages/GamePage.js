@@ -8,6 +8,7 @@ import { formatApiErrorDetail } from '../contexts/AuthContext';
 import DailyBonus from '../components/DailyBonus';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from "react-i18next";
+import AdBanner from '../components/AdBanner'; // ✅ Import
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -280,6 +281,12 @@ export default function GamePage() {
                     <DailyBonus onClaim={handleDailyClaim} />
                 </div>
 
+                {/* ✅ Annonce #1 — sous le header, avant les stats */}
+                <AdBanner
+                    slot="5693914067"
+                    style={{ marginBottom: "16px" }}
+                />
+
                 {/* Stats Bar */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <div className="stats-card-highlight fade-in" data-testid="stat-current-users">
@@ -423,6 +430,12 @@ export default function GamePage() {
                     </div>
                 </div>
 
+                {/* ✅ Annonce #2 — entre le panel transfer et le jeu */}
+                <AdBanner
+                    slot="5693914067"
+                    style={{ marginBottom: "16px" }}
+                />
+
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                     {/* Main Clicker Area */}
                     <div className="lg:col-span-5 flex flex-col items-center justify-center py-6 sm:py-8 fade-in">
@@ -545,13 +558,18 @@ export default function GamePage() {
                                                 formatCost={formatCost}
                                                 index={i}
                                                 variant="passive"
-                                                t ={t}
+                                                t={t}
                                             />
                                         ))}
                                     </div>
                                 </section>
                             </ScrollArea>
                         </div>
+                        {/* ✅ Annonce #3 — tout en bas, après le jeu */}
+                        <AdBanner
+                            slot="5693914067"
+                            style={{ marginTop: "24px" }}
+                        />
                     </div>
                 </div>
             </div>
