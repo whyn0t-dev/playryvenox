@@ -1,20 +1,17 @@
 export const initGameMonetize = () => {
-  window.sdk = window.sdk || {};
-  
-  if (typeof window.sdk.showBanner === "function") {
-    window.sdk.showBanner();
+  if (typeof window.sdk !== 'undefined') {
+    window.sdk.gameLoadingFinished();
   }
 };
 
 export const showRewardedAd = (onComplete) => {
-  if (typeof window.sdk.showRewardedAd === "function") {
-    window.sdk.showRewardedAd({
-      onAdCompleted: () => {
-        onComplete(); // Donner le bonus au joueur
-      },
-      onAdDismissed: () => {
-        console.log("Ad dismissed");
-      }
+  if (typeof window.sdk !== 'undefined') {
+    window.sdk.showBanner();
+    window.sdk.addEventListener('rewardedAdCompleted', () => {
+      onComplete();
     });
+  } else {
+    // En local, simuler le bonus directement
+    onComplete();
   }
 };
