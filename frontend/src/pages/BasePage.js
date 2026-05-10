@@ -11,6 +11,7 @@ import {
     Coins,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import { API_URL } from "../lib/utils";
 import Base3D from "../components/Base3D";
@@ -362,27 +363,39 @@ export default function BasePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
-                <div className="mx-auto max-w-7xl">
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
-                        <div className="animate-pulse text-lg font-medium text-slate-300">
-                            {t("basePage.loading")}
+            <>
+                <Helmet>
+                    <title>Base – Ryvenox</title>
+                    <meta name="robots" content="noindex, follow" />
+                </Helmet>
+                <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+                    <div className="mx-auto max-w-7xl">
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
+                            <div className="animate-pulse text-lg font-medium text-slate-300">
+                                {t("basePage.loading")}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     if (!data) {
         return (
-            <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
-                <div className="mx-auto max-w-7xl">
-                    <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-300 shadow-2xl">
-                        {t("basePage.errorLoading")}
+            <>
+                <Helmet>
+                    <title>Base – Ryvenox</title>
+                    <meta name="robots" content="noindex, follow" />
+                </Helmet>
+                <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+                    <div className="mx-auto max-w-7xl">
+                        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-300 shadow-2xl">
+                            {t("basePage.errorLoading")}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 
@@ -390,180 +403,192 @@ export default function BasePage() {
         buildingMeta[selectedBuilding]?.icon || Wrench;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100">
-            <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                    <div>
-                        <h1 className="text-4xl font-black tracking-tight text-white">
-                            {t("basePage.title")}
-                        </h1>
-                        <p className="mt-2 text-sm text-slate-400">
-                            {t("basePage.subtitle")}
-                        </p>
-                    </div>
+        <>
+            <Helmet>
+                <title>Base – Ryvenox</title>
+                <meta name="description" content="Build and manage your base in Ryvenox. Place generators, storage, walls, defense towers and helicopters to dominate the leaderboard." />
+                <meta name="robots" content="noindex, follow" />
+                <link rel="canonical" href="https://playryvenox.com/base" />
+                <meta property="og:title" content="Base – Ryvenox" />
+                <meta property="og:description" content="Build and manage your base in Ryvenox. Place generators, storage, walls, defense towers and helicopters to dominate the leaderboard." />
+                <meta property="og:url" content="https://playryvenox.com/base" />
+                <meta property="og:type" content="website" />
+            </Helmet>
 
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3 shadow-lg backdrop-blur">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            {t("basePage.rotation")}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2 text-lg font-semibold text-white">
-                            <RotateCw className="h-5 w-5 text-slate-300" />
-                            <span>
-                                {rotation}°{" "}
-                                <span className="text-sm font-normal text-slate-400">
-                                    (R)
+            <div className="min-h-screen bg-slate-950 text-slate-100">
+                <div className="mx-auto max-w-7xl px-4 py-8">
+                    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <h1 className="text-4xl font-black tracking-tight text-white">
+                                {t("basePage.title")}
+                            </h1>
+                            <p className="mt-2 text-sm text-slate-400">
+                                {t("basePage.subtitle")}
+                            </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3 shadow-lg backdrop-blur">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {t("basePage.rotation")}
+                            </p>
+                            <div className="mt-1 flex items-center gap-2 text-lg font-semibold text-white">
+                                <RotateCw className="h-5 w-5 text-slate-300" />
+                                <span>
+                                    {rotation}°{" "}
+                                    <span className="text-sm font-normal text-slate-400">
+                                        (R)
+                                    </span>
                                 </span>
-                            </span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {error && (
-                    <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 shadow-lg">
-                        {error}
-                    </div>
-                )}
+                    {error && (
+                        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 shadow-lg">
+                            {error}
+                        </div>
+                    )}
 
-                <div className="mb-6 grid gap-4 md:grid-cols-3">
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            {t("basePage.stats.users")}
-                        </p>
-                        <div className="mt-2 flex items-center gap-3">
-                            <Users className="h-6 w-6 text-cyan-400" />
-                            <p className="text-2xl font-bold text-white">
-                                {formatNumber(data.player.current_users)}
+                    <div className="mb-6 grid gap-4 md:grid-cols-3">
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {t("basePage.stats.users")}
                             </p>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            {t("basePage.stats.selected")}
-                        </p>
-                        <div className="mt-2 flex items-center gap-3">
-                            <SelectedBuildingIcon className="h-6 w-6 text-violet-400" />
-                            <p className="text-2xl font-bold capitalize text-white">
-                                {buildingMeta[selectedBuilding]?.label || selectedBuilding}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
-                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                            {t("basePage.stats.cost")}
-                        </p>
-                        <div className="mt-2 flex items-center gap-3">
-                            <Coins className="h-6 w-6 text-yellow-400" />
-                            <p className="text-2xl font-bold text-white">
-                                {formatNumber(data.building_costs[selectedBuilding])}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-                    <div className="space-y-6">
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur lg:sticky lg:top-6 lg:h-[600px]">
-                            <div className="mb-4">
-                                <h2 className="text-lg font-semibold text-white">
-                                    {t("basePage.selection.title")}
-                                </h2>
-                                <p className="text-sm text-slate-400">
-                                    {t("basePage.selection.description")}
+                            <div className="mt-2 flex items-center gap-3">
+                                <Users className="h-6 w-6 text-cyan-400" />
+                                <p className="text-2xl font-bold text-white">
+                                    {formatNumber(data.player.current_users)}
                                 </p>
                             </div>
+                        </div>
 
-                            <div className="flex flex-col gap-3">
-                                {Object.entries(buildingMeta).map(([key, meta]) => {
-                                    const Icon = meta.icon;
-                                    const isSelected = selectedBuilding === key;
-
-                                    return (
-                                        <button
-                                            key={key}
-                                            onClick={() => setSelectedBuilding(key)}
-                                            disabled={loadingAction}
-                                            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-                                                isSelected
-                                                    ? meta.activeClass
-                                                    : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <Icon className="h-4 w-4" />
-                                                {meta.label}
-                                            </span>
-                                            <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
-                                                {formatNumber(data.building_costs[key])}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
-                                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                                    {t("basePage.selection.currentSelection")}
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {t("basePage.stats.selected")}
+                            </p>
+                            <div className="mt-2 flex items-center gap-3">
+                                <SelectedBuildingIcon className="h-6 w-6 text-violet-400" />
+                                <p className="text-2xl font-bold capitalize text-white">
+                                    {buildingMeta[selectedBuilding]?.label || selectedBuilding}
                                 </p>
-                                <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
-                                    <SelectedBuildingIcon className="h-5 w-5 text-violet-400" />
-                                    <span>
-                                        {buildingMeta[selectedBuilding]?.label || selectedBuilding}
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {t("basePage.stats.cost")}
+                            </p>
+                            <div className="mt-2 flex items-center gap-3">
+                                <Coins className="h-6 w-6 text-yellow-400" />
+                                <p className="text-2xl font-bold text-white">
+                                    {formatNumber(data.building_costs[selectedBuilding])}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                        <div className="space-y-6">
+                            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur lg:sticky lg:top-6 lg:h-[600px]">
+                                <div className="mb-4">
+                                    <h2 className="text-lg font-semibold text-white">
+                                        {t("basePage.selection.title")}
+                                    </h2>
+                                    <p className="text-sm text-slate-400">
+                                        {t("basePage.selection.description")}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-3">
+                                    {Object.entries(buildingMeta).map(([key, meta]) => {
+                                        const Icon = meta.icon;
+                                        const isSelected = selectedBuilding === key;
+
+                                        return (
+                                            <button
+                                                key={key}
+                                                onClick={() => setSelectedBuilding(key)}
+                                                disabled={loadingAction}
+                                                className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${isSelected
+                                                        ? meta.activeClass
+                                                        : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-600 hover:bg-slate-700"
+                                                    }`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <Icon className="h-4 w-4" />
+                                                    {meta.label}
+                                                </span>
+                                                <span className="rounded-md bg-black/20 px-2 py-0.5 text-xs">
+                                                    {formatNumber(data.building_costs[key])}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                        {t("basePage.selection.currentSelection")}
+                                    </p>
+                                    <div className="mt-2 flex items-center gap-2 text-lg font-semibold text-white">
+                                        <SelectedBuildingIcon className="h-5 w-5 text-violet-400" />
+                                        <span>
+                                            {buildingMeta[selectedBuilding]?.label || selectedBuilding}
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 text-sm text-slate-400">
+                                        {t("basePage.selection.rotationValue", { value: rotation })}
+                                    </p>
+                                </div>
+
+                                <div className="mt-6">
+                                    <button
+                                        onClick={resetBase}
+                                        disabled={loadingAction}
+                                        className="w-full rounded-xl border border-red-500/30 bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {loadingAction
+                                            ? t("basePage.reset.loading")
+                                            : t("basePage.reset.button")}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur">
+                            <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-white">
+                                        {t("basePage.base3d.title")}
+                                    </h2>
+                                    <p className="text-sm text-slate-400">
+                                        {t("basePage.base3d.description")}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300">
+                                    <span className="flex items-center gap-2">
+                                        <SelectedBuildingIcon className="h-4 w-4 text-violet-400" />
+                                        {t("basePage.base3d.current")}{" "}
+                                        <span className="font-semibold text-white">
+                                            {buildingMeta[selectedBuilding]?.label || selectedBuilding}
+                                        </span>
                                     </span>
                                 </div>
-                                <p className="mt-1 text-sm text-slate-400">
-                                    {t("basePage.selection.rotationValue", { value: rotation })}
-                                </p>
                             </div>
 
-                            <div className="mt-6">
-                                <button
-                                    onClick={resetBase}
-                                    disabled={loadingAction}
-                                    className="w-full rounded-xl border border-red-500/30 bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {loadingAction
-                                        ? t("basePage.reset.loading")
-                                        : t("basePage.reset.button")}
-                                </button>
+                            <div className="h-[600px] w-full bg-slate-950">
+                                <Base3D
+                                    data={data}
+                                    onBuild={(x, y) => build(selectedBuilding, x, y)}
+                                    selectedBuildingType={selectedBuilding}
+                                    selectedRotation={rotation}
+                                />
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur">
-                        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
-                            <div>
-                                <h2 className="text-lg font-semibold text-white">
-                                    {t("basePage.base3d.title")}
-                                </h2>
-                                <p className="text-sm text-slate-400">
-                                    {t("basePage.base3d.description")}
-                                </p>
-                            </div>
-
-                            <div className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300">
-                                <span className="flex items-center gap-2">
-                                    <SelectedBuildingIcon className="h-4 w-4 text-violet-400" />
-                                    {t("basePage.base3d.current")}{" "}
-                                    <span className="font-semibold text-white">
-                                        {buildingMeta[selectedBuilding]?.label || selectedBuilding}
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="h-[600px] w-full bg-slate-950">
-                            <Base3D
-                                data={data}
-                                onBuild={(x, y) => build(selectedBuilding, x, y)}
-                                selectedBuildingType={selectedBuilding}
-                                selectedRotation={rotation}
-                            />
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
