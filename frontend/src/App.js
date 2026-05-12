@@ -24,6 +24,7 @@ import Footer from "./components/Footer";
 import GlobalAudio from "./components/GlobalAudio";
 import BasePage from "./pages/BasePage";
 import AdBanner from "./components/AdBanner"; // ✅ Import
+import { HelmetProvider } from 'react-helmet-async';
 
 function AppContent({ soundEnabled, toggleSound }) {
   const location = useLocation();
@@ -117,16 +118,18 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="App min-h-screen bg-background text-foreground">
-        <div className="app-background" />
-        <BrowserRouter>
-          <AppContent soundEnabled={soundEnabled} toggleSound={toggleSound} />
-        </BrowserRouter>
+    <HelmetProvider>
+      <AuthProvider>
+        <div className="App min-h-screen bg-background text-foreground">
+          <div className="app-background" />
+          <BrowserRouter>
+            <AppContent soundEnabled={soundEnabled} toggleSound={toggleSound} />
+          </BrowserRouter>
 
-        <Toaster position="bottom-right" />
-      </div>
-    </AuthProvider>
+          <Toaster position="bottom-right" />
+        </div>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 
